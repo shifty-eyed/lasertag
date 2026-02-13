@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="grey">#BCBCBC</color>
+    <color name="tableBackground">#0A0A0A</color>
+    <color name="tableHeaderBackground">#3C3C3C</color>
+    <color name="headerTextColor">#FFFFFF</color>
+    <color name="tableRowBackground">#404040</color>
+    <color name="borderColor">#666666</color>
+    <color name="tableRowBackgroundRed">#6C0000</color>
+    <color name="tableRowBackgroundBlue">#082579</color>
+    <color name="tableRowBackgroundGreen">#116014</color>
+    <color name="tableRowBackgroundYellow">#9D8E07</color>
+    <color name="tableRowBackgroundMagenta">#492983</color>
+    <color name="tableRowBackgroundCyan">#00838F</color>
+    <color name="nameTextRed">#D30000</color>
+    <color name="nameTextBlue">#003EF0</color>
+    <color name="nameTextGreen">#0CB600</color>
+    <color name="nameTextYellow">#ECC604</color>
+    <color name="nameTextMagenta">#7736EF</color>
+    <color name="nameTextCyan">#03C0D2</color>
+
+</resources>
