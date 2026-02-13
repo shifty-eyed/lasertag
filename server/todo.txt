@@ -4,3 +4,7 @@ Unit tests / integration tests
 Common:
 check for cyclic events in both server to phone and server to ui
 
+Issue:
+-android /server - when killed the respawn mode is not on at first time, when the player can be killed second time from single shot and when respawn mode works
+- android - when new game started accidentally voice says your are tied
+

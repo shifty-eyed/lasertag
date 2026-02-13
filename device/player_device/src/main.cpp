@@ -35,12 +35,12 @@ void taskStatusLed(void *pvParameters) {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   IrSender.begin(IR_LED_PIN);
   IrReceiver.begin(IR_RECEIVER_PIN);
 
 #if WIRING_MODE == WIRING_MODE_WIRED
-  Serial2.begin(9600, SERIAL_8N1, WIRED_UART_RX_PIN, WIRED_UART_TX_PIN);
+  Serial2.begin(19200, SERIAL_8N1, WIRED_UART_RX_PIN, WIRED_UART_TX_PIN);
 #endif
 
   pinMode(FIRE_PIN, INPUT_PULLUP);
@@ -100,7 +100,7 @@ void taskIRReceiver(void *pvParameters) {
     if (IrReceiver.decode()) {
       uint8_t address = (uint8_t)IrReceiver.decodedIRData.address;
       uint8_t command = (uint8_t)IrReceiver.decodedIRData.command;
-      //Serial.println("IR received. Address: " + String(address) + ", Command: " + String(command));
+      Serial.println("IR received. Address: " + String(address) + ", Command: " + String(command));
       if (address == IR_ADDRESS_GUN) {
         uint8_t hitByPlayer = command;
         if (hitByPlayer != playerId 
@@ -127,7 +127,7 @@ void taskIRReceiver(void *pvParameters) {
       }
       IrReceiver.resume();
     }
-    vTaskDelay(30 / portTICK_PERIOD_MS);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
 

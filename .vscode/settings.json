@@ -1,0 +1,7 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.debug.settings.stepping.skipClasses": [],
+    "java.debug.settings.stepping.skipSynthetics": false,
+    "java.debug.settings.hotCodeReplace": "auto"
+}

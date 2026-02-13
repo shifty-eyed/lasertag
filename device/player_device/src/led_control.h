@@ -15,9 +15,9 @@
 #define STATUS_LED_PWM_RESOLUTION_BITS 8
 #define STATUS_LED_PWM_MAX_DUTY ((1 << STATUS_LED_PWM_RESOLUTION_BITS) - 1)
 
-#define STATUS_LED_RED_CHANNEL 0
-#define STATUS_LED_GREEN_CHANNEL 1
-#define STATUS_LED_BLUE_CHANNEL 2
+#define STATUS_LED_RED_CHANNEL 2
+#define STATUS_LED_GREEN_CHANNEL 3
+#define STATUS_LED_BLUE_CHANNEL 4
 
 #ifdef VEST
 #define ON_LEVEL_NORMAL 20
@@ -42,6 +42,8 @@ static int8_t statusLedChannelForPin(uint8_t pin) {
 static void initStatusLedPwm() {
   pinMode(STATUS_LED_ONBOARD, OUTPUT);
   pinMode(STATUS_LED_GUN, OUTPUT);
+
+  #ifdef VEST
   ledcSetup(STATUS_LED_RED_CHANNEL, STATUS_LED_PWM_FREQ_HZ, STATUS_LED_PWM_RESOLUTION_BITS);
   ledcSetup(STATUS_LED_GREEN_CHANNEL, STATUS_LED_PWM_FREQ_HZ, STATUS_LED_PWM_RESOLUTION_BITS);
   ledcSetup(STATUS_LED_BLUE_CHANNEL, STATUS_LED_PWM_FREQ_HZ, STATUS_LED_PWM_RESOLUTION_BITS);
@@ -49,20 +51,25 @@ static void initStatusLedPwm() {
   ledcAttachPin(STATUS_LED_RED, STATUS_LED_RED_CHANNEL);
   ledcAttachPin(STATUS_LED_GREEN, STATUS_LED_GREEN_CHANNEL);
   ledcAttachPin(STATUS_LED_BLUE, STATUS_LED_BLUE_CHANNEL);
+  #endif
+  #ifdef GUN
+  pinMode(STATUS_LED_RED, OUTPUT);
+  pinMode(STATUS_LED_GREEN, OUTPUT);
+  pinMode(STATUS_LED_BLUE, OUTPUT);
+  #endif
 }
 
 static void colorLedOn(uint8_t pin, uint8_t brightness) {
+  #ifdef VEST
   int8_t channel = statusLedChannelForPin(pin);
   if (channel < 0) {
     return;
   }
-  uint8_t clamped = brightness > STATUS_LED_PWM_MAX_DUTY ? STATUS_LED_PWM_MAX_DUTY : brightness;
-  #ifdef VEST
-  uint8_t duty = clamped;
-  #else
-  uint8_t duty = STATUS_LED_PWM_MAX_DUTY - clamped; //gun (active low)
-  #endif
+  uint8_t duty = brightness > STATUS_LED_PWM_MAX_DUTY ? STATUS_LED_PWM_MAX_DUTY : brightness;
   ledcWrite(channel, duty);
+  #else
+  digitalWrite(pin, brightness > 0 ? LOW : HIGH);
+  #endif
 }
 
 static void colorLedsOff() {

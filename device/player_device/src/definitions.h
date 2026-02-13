@@ -1,7 +1,7 @@
 #pragma once
 
-#define VEST
-//#define GUN
+//#define VEST
+#define GUN
 
 #define WIRING_MODE_WIRELESS 1
 #define WIRING_MODE_WIRED 2
