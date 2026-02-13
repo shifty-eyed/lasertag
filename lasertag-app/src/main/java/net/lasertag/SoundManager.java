@@ -88,4 +88,13 @@ public class SoundManager {
     public void playYouScored() {
         play(youScoredSound);
     }
+
+    public void playGotHealth() {
+        play(youScoredSound);
+    }
+
+    public void playGotAmmo() {
+        play(reloadSound);
+    }
+
 }

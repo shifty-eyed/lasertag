@@ -83,28 +83,27 @@
             app:layout_constraintTop_toBottomOf="@+id/player_health" />
 
         <ImageView
-            android:id="@+id/imageViewTime"
+            android:id="@+id/imageView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="0dp"
+            android:layout_marginStart="4dp"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="32dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageView2"
-            app:srcCompat="@drawable/time" />
+            app:srcCompat="@drawable/ammo_box" />
 
         <TextView
-            android:id="@+id/game_timer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/player_total_ammo"
+            android:layout_width="100dp"
+            android:layout_height="64dp"
             android:layout_marginStart="16dp"
-            android:text="08:00"
+            android:layout_marginTop="32dp"
+            android:text="50"
             android:textColor="@color/grey"
             android:textSize="46sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/imageViewTime"
-            app:layout_constraintTop_toBottomOf="@+id/player_score"
-            app:layout_constraintVertical_bias="0.363" />
+            app:layout_constraintStart_toEndOf="@+id/imageView2"
+            app:layout_constraintTop_toBottomOf="@+id/player_score" />
 
         <LinearLayout
             android:id="@+id/bullets_bar"
@@ -170,6 +169,45 @@
             android:orientation="horizontal"
             android:padding="0dp"
             android:stretchColumns="1" />
+
+        <LinearLayout
+            android:id="@+id/device_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:orientation="horizontal"
+            android:padding="0dp"
+            >
+
+            <ImageView
+                android:id="@+id/imageViewTime"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                app:srcCompat="@drawable/time" />
+
+            <TextView
+                android:id="@+id/game_timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--:--"
+                android:textColor="@color/grey"
+                android:textSize="25sp" />
+
+            <ImageView
+                android:id="@+id/device_status_gun"
+                app:srcCompat="@drawable/gun_crossed"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="20dp"/>
+
+            <ImageView
+                android:id="@+id/device_status_vest"
+                app:srcCompat="@drawable/vest_crossed"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="20dp"/>
+        </LinearLayout>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -222,6 +260,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/grey" />
+
     </LinearLayout>
 
 </LinearLayout>

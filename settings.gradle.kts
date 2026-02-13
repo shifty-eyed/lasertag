@@ -20,4 +20,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "LasertagPlayer"
-include(":app")
+include(":lasertag-app")
