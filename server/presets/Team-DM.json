@@ -1,0 +1,144 @@
+{
+  "fragLimit" : 10,
+  "gameType" : "TEAM_DM",
+  "timeLimitMinutes" : 15,
+  "playerSettings" : {
+    "0" : {
+      "name" : "Tima",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 0
+    },
+    "1" : {
+      "name" : "Luka",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 1
+    },
+    "2" : {
+      "name" : "Diana",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 0
+    },
+    "3" : {
+      "name" : "Roma",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 1
+    },
+    "4" : {
+      "name" : "Player-5",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 0
+    },
+    "5" : {
+      "name" : "Player-6",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 1
+    }
+  },
+  "healthDispenserSettings" : {
+    "timeout" : 60,
+    "amount" : 40
+  },
+  "ammoDispenserSettings" : {
+    "timeout" : 60,
+    "amount" : 40
+  },
+  "allSettings" : {
+    "general" : {
+      "fragLimit" : 10,
+      "timeLimitMinutes" : 15,
+      "teamPlay" : false
+    },
+    "players" : {
+      "0" : {
+        "name" : "Tima",
+        "bulletsMax" : 40,
+        "damage" : 10,
+        "teamId" : 0
+      },
+      "1" : {
+        "name" : "Luka",
+        "bulletsMax" : 40,
+        "damage" : 10,
+        "teamId" : 1
+      },
+      "2" : {
+        "name" : "Diana",
+        "bulletsMax" : 40,
+        "damage" : 10,
+        "teamId" : 0
+      },
+      "3" : {
+        "name" : "Roma",
+        "bulletsMax" : 40,
+        "damage" : 10,
+        "teamId" : 1
+      },
+      "4" : {
+        "name" : "Player-5",
+        "bulletsMax" : 40,
+        "damage" : 10,
+        "teamId" : 0
+      },
+      "5" : {
+        "name" : "Player-6",
+        "bulletsMax" : 40,
+        "damage" : 10,
+        "teamId" : 1
+      }
+    },
+    "dispensers" : {
+      "ammo" : {
+        "timeout" : 60,
+        "amount" : 40
+      },
+      "health" : {
+        "timeout" : 60,
+        "amount" : 40
+      }
+    }
+  },
+  "allPlayerSettings" : {
+    "0" : {
+      "name" : "Tima",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 0
+    },
+    "1" : {
+      "name" : "Luka",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 1
+    },
+    "2" : {
+      "name" : "Diana",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 0
+    },
+    "3" : {
+      "name" : "Roma",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 1
+    },
+    "4" : {
+      "name" : "Player-5",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 0
+    },
+    "5" : {
+      "name" : "Player-6",
+      "bulletsMax" : 40,
+      "damage" : 10,
+      "teamId" : 1
+    }
+  }
+}

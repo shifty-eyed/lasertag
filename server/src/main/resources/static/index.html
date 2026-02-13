@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laser Tag Game Server</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="main-container">
+            <!-- Left panel: Main content -->
+            <div class="content-panel">
+        <!-- Header with game controls -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Laser Tag Server</h1>
+                <div class="status-banner" :class="'status-' + gameStatus">
+                    {{ gameState.playing ? formatTime(gameState.timeLeftSeconds) : gameStatusText }}
+                </div>
+                <a href="logs.html" target="_blank" style="color: #4ec9b0; text-decoration: none; font-size: 0.9rem; font-weight: 500;">Logs</a>
+            </div>
+        </header>
+
+        <!-- Game Controls -->
+        <section class="controls-section">
+            <div class="control-group">
+                <label for="timeLimit">Time Limit (min):</label>
+                <input 
+                    type="number" 
+                    id="timeLimit" 
+                    v-model.number="settings.general.timeLimitMinutes" 
+                    :disabled="gameState.playing"
+                    min="1"
+                    max="60">
+            </div>
+
+            <div class="control-group">
+                <label for="fragLimit">Frag Limit:</label>
+                <input 
+                    type="number" 
+                    id="fragLimit" 
+                    v-model.number="settings.general.fragLimit" 
+                    :disabled="gameState.playing"
+                    min="1"
+                    max="100">
+            </div>
+
+            <div class="control-group">
+                <label for="gameType">Game Type:</label>
+                <select 
+                    id="gameType" 
+                    v-model="settings.general.gameType" 
+                    :disabled="gameState.playing">
+                    <option v-for="option in gameTypeOptions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="presetSelect">Preset:</label>
+                <div class="preset-controls">
+                    <select 
+                        id="presetSelect" 
+                        v-model="selectedPreset" 
+                        :disabled="gameState.playing">
+                        <option value="New">New...</option>
+                        <option v-for="preset in presets" :key="preset" :value="preset">{{ preset }}</option>
+                    </select>
+                    <button 
+                        @click="loadPreset" 
+                        :disabled="gameState.playing || selectedPreset === 'New...'"
+                        class="btn-icon"
+                        title="Load Preset">
+                        📥
+                    </button>
+                    <button 
+                        @click="savePreset" 
+                        :disabled="gameState.playing"
+                        class="btn-icon"
+                        title="Save Preset">
+                        💾
+                    </button>
+                </div>
+            </div>
+
+            <!-- Team Scores (moved to toolbar) -->
+            <div v-if="isTeamBased && sortedTeamScores && Object.keys(sortedTeamScores).length > 0" class="toolbar-scores">
+                <div 
+                    v-for="(score, teamId) in sortedTeamScores" 
+                    :key="teamId"
+                    class="toolbar-score-card"
+                    :style="{ backgroundColor: getTeamColor(teamId), color: getTeamTextColor(teamId) }">
+                    <div class="toolbar-team-name">{{ getTeamName(teamId) }}</div>
+                    <div class="toolbar-team-score">{{ score }}</div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button 
+                    @click="startGame" 
+                    :disabled="gameState.playing"
+                    class="btn btn-primary">
+                    Start Game
+                </button>
+                <button 
+                    @click="endGame" 
+                    :disabled="!gameState.playing"
+                    class="btn btn-danger">
+                    End Game
+                </button>
+            </div>
+        </section>
+
+        <!-- Removed separate Team Scores section -->
+
+        <!-- Players Section -->
+        <section class="players-section">
+            <div class="players-container">
+                <!-- Mobile: Card view -->
+                <div class="players-cards mobile-only">
+                    <div 
+                        v-for="player in players" 
+                        :key="player.id"
+                        class="player-card"
+                        :class="{ 'player-online': player.online, 'player-offline': !player.online }">
+                        <div class="player-card-header">
+                            <span class="player-id">P{{ player.id }}</span>
+                            <span class="player-status-badge" :class="player.online ? 'badge-online' : 'badge-offline'">
+                                {{ player.online ? 'Online' : 'Offline' }}
+                            </span>
+                        </div>
+                        <div class="player-card-body">
+                            <div class="player-field">
+                                <label>Name:</label>
+                                <input 
+                                    type="text" 
+                                    v-model="player.name" 
+                                    @focus="onPlayerFieldFocus(player, 'name')"
+                                    @blur="onPlayerFieldBlur(player, 'name'); updatePlayer(player)">
+                            </div>
+                            <div class="player-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Score:</span>
+                                    <span class="stat-value score-value">{{ player.score }}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Health:</span>
+                                    <span class="stat-value health-value">{{ player.health }}</span>
+                                </div>
+                            </div>
+                            <div class="player-field">
+                                <label>Team:</label>
+                                <select 
+                                    v-model.number="player.teamId" 
+                                    @change="updatePlayer(player)"
+                                    :style="{ backgroundColor: getTeamColor(player.teamId), color: getTeamTextColor(player.teamId) }">
+                                    <option v-for="(name, id) in availableTeams" :key="id" :value="Number(id)">{{ name }}</option>
+                                </select>
+                            </div>
+                            <div class="player-equipment">
+                                <div class="player-field">
+                                    <label>Max Bullets:</label>
+                                    <input 
+                                        type="number" 
+                                        v-model.number="player.bulletsMax" 
+                                        @focus="onPlayerFieldFocus(player, 'bulletsMax')"
+                                        @blur="onPlayerFieldBlur(player, 'bulletsMax'); updatePlayer(player)"
+                                        min="1"
+                                        max="100"
+                                        step="5">
+                                </div>
+                                <div class="player-field">
+                                    <label>Damage:</label>
+                                    <input 
+                                        type="number" 
+                                        v-model.number="player.damage" 
+                                        @focus="onPlayerFieldFocus(player, 'damage')"
+                                        @blur="onPlayerFieldBlur(player, 'damage'); updatePlayer(player)"
+                                        min="1"
+                                        max="100"
+                                        step="5">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop: Table view -->
+                <div class="players-table desktop-only">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Score</th>
+                                <th>Health</th>
+                                <th>Max Bullets</th>
+                                <th>Damage</th>
+                                <th>Team</th>
+                                <th>R-point</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr 
+                                v-for="player in players" 
+                                :key="player.id"
+                                :class="{ 'player-online': player.online, 'player-offline': !player.online }">
+                                <td>{{ player.id }}</td>
+                                <td>
+                                    <input 
+                                        type="text" 
+                                        v-model="player.name" 
+                                        @focus="onPlayerFieldFocus(player, 'name')"
+                                        @blur="onPlayerFieldBlur(player, 'name'); updatePlayer(player)">
+                                </td>
+                                <td class="score-cell">{{ player.score }}</td>
+                                <td class="health-cell">{{ player.health }}</td>
+                                <td>
+                                    <input 
+                                        type="number" 
+                                        v-model.number="player.bulletsMax" 
+                                        @focus="onPlayerFieldFocus(player, 'bulletsMax')"
+                                        @blur="onPlayerFieldBlur(player, 'bulletsMax'); updatePlayer(player)"
+                                        min="1" max="100">
+                                </td>
+                                <td>
+                                    <input 
+                                        type="number" 
+                                        v-model.number="player.damage" 
+                                        @focus="onPlayerFieldFocus(player, 'damage')"
+                                        @blur="onPlayerFieldBlur(player, 'damage'); updatePlayer(player)"
+                                        min="1" max="100">
+                                </td>
+                                <td>
+                                    <select 
+                                        v-model.number="player.teamId" 
+                                        @change="updatePlayer(player)"
+                                        :style="{ backgroundColor: getTeamColor(player.teamId), color: getTeamTextColor(player.teamId) }">
+                                        <option v-for="(name, id) in availableTeams" :key="id" :value="Number(id)">{{ name }}</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <button
+                                        v-if="isRespawnPending(player)"
+                                        type="button"
+                                        class="respawn-point-button"
+                                        title="Send respawn point event"
+                                        @click="triggerRespawnPoint(player)">
+                                        {{ player.assignedRespawnPoint }}
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dispensers Section -->
+        <section class="dispensers-section">
+            <div class="dispensers-container">
+                <!-- Health Dispensers -->
+                <div class="dispenser-panel">
+                    <h3>Health Dispensers</h3>
+                    <div class="dispenser-online-list">
+                        Online: <span v-if="onlineHealthDispensers.length === 0">none</span>
+                        <span v-else>{{ onlineHealthDispensers.join(', ') }}</span>
+                    </div>
+                    <div class="dispenser-controls">
+                        <div class="control-group">
+                            <label>Timeout (sec):</label>
+                            <input 
+                                type="number" 
+                                v-model.number="settings.dispensers.health.timeout" 
+                                @blur="updateDispensers('HEALTH')"
+                                min="1"
+                                placeholder="60">
+                        </div>
+                        <div class="control-group">
+                            <label>Amount:</label>
+                            <input 
+                                type="number" 
+                                v-model.number="settings.dispensers.health.amount" 
+                                @blur="updateDispensers('HEALTH')"
+                                min="1"
+                                placeholder="40">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ammo Dispensers -->
+                <div class="dispenser-panel">
+                    <h3>Ammo Dispensers</h3>
+                    <div class="dispenser-online-list">
+                        Online: <span v-if="onlineAmmoDispensers.length === 0">none</span>
+                        <span v-else>{{ onlineAmmoDispensers.join(', ') }}</span>
+                    </div>
+                    <div class="dispenser-controls">
+                        <div class="control-group">
+                            <label>Timeout (sec):</label>
+                            <input 
+                                type="number" 
+                                v-model.number="settings.dispensers.ammo.timeout" 
+                                @blur="updateDispensers('AMMO')"
+                                min="1"
+                                placeholder="60">
+                        </div>
+                        <div class="control-group">
+                            <label>Amount:</label>
+                            <input 
+                                type="number" 
+                                v-model.number="settings.dispensers.ammo.amount" 
+                                @blur="updateDispensers('AMMO')"
+                                min="1"
+                                placeholder="40">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+            </div>
+            <!-- End of left panel -->
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

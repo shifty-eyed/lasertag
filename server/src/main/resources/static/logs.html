@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laser Tag Server - Logs</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="logs-page-container">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-content">
+                    <h1>Laser Tag Server – Logs</h1>
+                </div>
+            </header>
+
+            <!-- Log viewer -->
+            <div class="logs-page-panel">
+                <div class="log-header">
+                    <h3>📋 Live Logs</h3>
+                    <button @click="clearLogs" class="btn-clear-logs">Clear</button>
+                </div>
+                <div class="log-content" ref="logContent">
+                    <div v-if="logs.length === 0" class="log-empty">
+                        Waiting for logs...
+                    </div>
+                    <div v-for="(log, index) in logs" :key="index" class="log-entry" :class="getLogLevelClass(log)">
+                        {{ log }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

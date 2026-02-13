@@ -1,0 +1,6 @@
+Server:
+Unit tests / integration tests
+
+Common:
+check for cyclic events in both server to phone and server to ui
+
