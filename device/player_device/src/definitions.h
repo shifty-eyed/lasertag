@@ -8,6 +8,13 @@
 
 #define WIRING_MODE WIRING_MODE_WIRED
 
+#define ENABLE_DEBUG_LOGS 1
+#if ENABLE_DEBUG_LOGS
+#define LOG(message) Serial.println(message)
+#else
+#define LOG(message) do {} while (0)
+#endif
+
 
 #define MAX_PLAYERS 16
 #define GUN_FIRE_INTERVAL 300

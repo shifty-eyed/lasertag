@@ -35,7 +35,9 @@ void taskStatusLed(void *pvParameters) {
 }
 
 void setup() {
+#if ENABLE_DEBUG_LOGS
   Serial.begin(115200);
+#endif
   IrSender.begin(IR_LED_PIN);
   IrReceiver.begin(IR_RECEIVER_PIN);
 
@@ -50,13 +52,13 @@ void setup() {
 
 #if WIRING_MODE == WIRING_MODE_WIRELESS || defined(VEST)
   if (!SerialBT.begin(deviceName)) {
-    Serial.println("An error occurred initializing Bluetooth");
+    LOG("An error occurred initializing Bluetooth");
   } else {
     while (!SerialBT.connected(2000)) {
-      Serial.println("Connecting BT..");
+      LOG("Connecting BT..");
       vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
-    Serial.println("BT connected.");
+    LOG("BT connected.");
   }
 #endif
   
@@ -82,7 +84,7 @@ void loop() {
   }
 
   if (reloadButtonState == LOW) {
-    Serial.println("Reload");
+    LOG("Reload");
     sendMessageToHost(MSG_TYPE_GUN_RELOAD, 0);
     vTaskDelay(2000 / portTICK_PERIOD_MS);
   }
@@ -100,29 +102,29 @@ void taskIRReceiver(void *pvParameters) {
     if (IrReceiver.decode()) {
       uint8_t address = (uint8_t)IrReceiver.decodedIRData.address;
       uint8_t command = (uint8_t)IrReceiver.decodedIRData.command;
-      Serial.println("IR received. Address: " + String(address) + ", Command: " + String(command));
+      LOG("IR received. Address: " + String(address) + ", Command: " + String(command));
       if (address == IR_ADDRESS_GUN) {
         uint8_t hitByPlayer = command;
         if (hitByPlayer != playerId 
           && (millis() - playersHitRecentHit[hitByPlayer] > GUN_FIRE_INTERVAL)) {
           playersHitRecentHit[hitByPlayer] = millis();
-          Serial.println("Hit by player: " + String(hitByPlayer));
+          LOG("Hit by player: " + String(hitByPlayer));
           sendMessageToHost(MSG_TYPE_VEST_HIT, hitByPlayer);
         } else {
-          Serial.println("Hit by myself");
+          LOG("Hit by myself");
         }
       } else if (address == IR_ADDRESS_RESPAWN && playerState == PLATER_STATE_DEAD) {
         uint8_t respawnPointId = command;
-        Serial.println("Respawn");
+        LOG("Respawn");
         sendMessageToHost(MSG_TYPE_RESPAWN, respawnPointId);
       } else if (address == IR_ADDRESS_AMMO && playerState == PLATER_STATE_PLAY) {
-        Serial.println("Got Ammo");
+        LOG("Got Ammo");
         sendMessageToHost(MSG_TYPE_GOT_AMMO, command);
       } else if (address == IR_ADDRESS_HEALTH && playerState == PLATER_STATE_PLAY) {
-        Serial.println("Got Health");
+        LOG("Got Health");
         sendMessageToHost(MSG_TYPE_GOT_HEALTH, command);
       } else if (address == IR_ADDRESS_FLAG && playerState == PLATER_STATE_PLAY) {
-        Serial.println("Flag");
+        LOG("Flag");
         sendMessageToHost(MSG_TYPE_FLAG, command);
       }
       IrReceiver.resume();
@@ -148,7 +150,7 @@ void sendMessageToHost(int8_t messageType, int8_t counterpartPlayerId) {
   outbound.flush();
 
   if (messageType != MSG_TYPE_PING) {
-    Serial.println("Sent message: " + String(messageType));
+    LOG("Sent message: " + String(messageType));
   }
 }
 
@@ -183,25 +185,24 @@ void taskInboundReceiverFromHost(void* pvParameters) {
     if (inbound.available()) {
       int len = inbound.readBytesUntil(STOP_BYTE, incomingPacket, sizeof(incomingPacket));
       if (len == 0) {
-        Serial.println("Received Empty message");
+        LOG("Received Empty message");
         continue;
       }
       pingsSentWithNoResponse = 0;
       int8_t type = incomingPacket[0];
 
       if (type == MSG_TYPE_PING) {
-        Serial.println("PING from BT");
+        LOG("PING from BT");
       } else if (type == MSG_TYPE_IN_PLAYER_STATE) {
         if (len < 3) {
-          Serial.println("Invalid player state message length");
+          LOG("Invalid player state message length");
           continue;
         }
         playerId = incomingPacket[1];
         playerTeam = incomingPacket[2];
         playerState = incomingPacket[3];
         bulletsLeft = incomingPacket[4];
-        Serial.printf("Player Info Update: playerId=%d, team=%d, state=%d, bullets=%d\n", 
-          playerId, playerTeam, playerState, bulletsLeft);
+        LOG("Player Info Update: playerId=" + String(playerId) + ", team=" + String(playerTeam) + ", state=" + String(playerState) + ", bullets=" + String(bulletsLeft));
 #if WIRING_MODE == WIRING_MODE_WIRED && defined(VEST)
         sendCurrentStateToWiredGun();
         //Serial.printf("FWD to GUN: type=%d\n", type);
@@ -219,17 +220,17 @@ void taskWiredReceiverFromGun(void* pvParameters) {
     if (Serial2.available()) {
       int len = Serial2.readBytesUntil(STOP_BYTE, incomingPacket, sizeof(incomingPacket));
       if (len != 2) {
-        Serial.println("Corrupted wired message - ignored");
+        LOG("Corrupted wired message - ignored");
         continue;
       }
 
       //Serial.printf("WIRE len=%d type=%d\n", len, (int)incomingPacket[0]);
       if (incomingPacket[0] == MSG_TYPE_PING) {
-        Serial.println("WIRED: PING from GUN");
+        LOG("WIRED: PING from GUN");
         continue;
       }
       sendMessageToHost(incomingPacket[0], incomingPacket[1]);
-      Serial.printf("FWD to BT: type=%d\n", incomingPacket[0]);
+      LOG("FWD to BT: type=" + String((int)incomingPacket[0]));
     }
     vTaskDelay(20 / portTICK_PERIOD_MS);
   }
