@@ -40,3 +40,10 @@ This repository is split into three main parts: Android client, embedded device 
   - `server/src/main/java/net/lasertag/lasertagserver/web/` - controllers + SSE/log streaming
   - `server/src/main/resources/static/` - simple web UI assets
   - `server/presets/` - game preset JSONs
+
+
+## `./.context` (for AI agent context)
+
+- contains up to date game description `game-description.md`
+- `.context/plan` for implementation plans
+- `.context/prompt` for temporary prepared prompts

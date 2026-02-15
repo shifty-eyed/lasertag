@@ -35,15 +35,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressLint("MissingPermission")
 public class GameService extends Service {
 
     private Config config;
-    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(3);
+    private EventLoopHandler eventLoop;
     private SoundManager soundManager;
 
     private volatile boolean isActive = true;
@@ -67,16 +66,9 @@ public class GameService extends Service {
     private final BroadcastReceiver activityResumedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch (Objects.requireNonNull(intent.getAction())) {
-                case "ACTIVITY_PAUSED" -> isActive = false;
-                case "ACTIVITY_RESUMED" -> {
-                    isActive = true;
-                    sendCurrentStateToActivity();
-                    sendMessageToActivity(lastStatsMessage, INTERCOM_GAME_MESSAGE);
-                    sendMessageToActivity(lastReceivedEvent, INTERCOM_GAME_MESSAGE);
-                    lastStatsMessage = null;
-                    lastReceivedEvent = null;
-                }
+            var action = Objects.requireNonNull(intent.getAction());
+            if (eventLoop != null) {
+                eventLoop.enqueueActivity(action);
             }
         }
     };
@@ -87,6 +79,13 @@ public class GameService extends Service {
         config = new Config(this);
         thisPlayer = new Player(config.getPlayerId());
         soundManager = new SoundManager(this);
+        eventLoop = new EventLoopHandler(
+                TAG,
+                this::handleEventFromDevice,
+                this::handleEventFromServer,
+                this::timerTick,
+                this::handleActivitySignal);
+        eventLoop.start();
 
         createNotificationChannel();
         Notification notification = new Notification.Builder(this, CHANNEL_ID)
@@ -102,12 +101,11 @@ public class GameService extends Service {
         try {
             var bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-            vestComm = new BluetoothClient(Config.VEST_DEVICE_NAME, BluetoothClient.DEVICE_VEST, bluetoothAdapter, this::handleEventFromDevice);
-            udpClient = new UdpClient(config, this::handleEventFromServer);
-            debugComm = new MockDeviceClient(BluetoothClient.DEVICE_DEBUG, this::handleEventFromDevice);
+            vestComm = new BluetoothClient(Config.VEST_DEVICE_NAME, BluetoothClient.DEVICE_VEST, bluetoothAdapter, this::enqueueEventFromDevice);
+            udpClient = new UdpClient(config, this::enqueueEventFromServer);
+            debugComm = new MockDeviceClient(BluetoothClient.DEVICE_DEBUG, this::enqueueEventFromDevice);
 
-            executorService.scheduleWithFixedDelay(this::timerTick, 0, 1, java.util.concurrent.TimeUnit.SECONDS);
-            evaluateCurrentState();
+            eventLoop.post(this::evaluateCurrentState);
         } catch (Exception e) {
             Log.e(TAG, "Service failed to start", e);
             stopSelf();
@@ -125,7 +123,10 @@ public class GameService extends Service {
     @Override
     public void onDestroy() {
         unregisterReceiver(activityResumedReceiver);
-        executorService.shutdownNow();
+        if (eventLoop != null) {
+            eventLoop.stop();
+            eventLoop = null;
+        }
         soundManager.release();
         if (debugComm != null && vestComm != null) {
             try {
@@ -161,6 +162,20 @@ public class GameService extends Service {
         var minutes = (byte) (timerCounters[TIMER_GAME].get() / 60);
         var seconds = (byte) (timerCounters[TIMER_GAME].get() % 60);
         sendMessageToActivity(new TimeMessage(Messaging.GAME_TIMER, minutes, seconds), INTERCOM_TIME_TICK);
+    }
+
+    private void handleActivitySignal(String action) {
+        switch (action) {
+            case "ACTIVITY_PAUSED" -> isActive = false;
+            case "ACTIVITY_RESUMED" -> {
+                isActive = true;
+                sendCurrentStateToActivity();
+                sendMessageToActivity(lastStatsMessage, INTERCOM_GAME_MESSAGE);
+                sendMessageToActivity(lastReceivedEvent, INTERCOM_GAME_MESSAGE);
+                lastStatsMessage = null;
+                lastReceivedEvent = null;
+            }
+        }
     }
 
     // return true if state changed
@@ -222,6 +237,12 @@ public class GameService extends Service {
             lastStatsMessage = (StatsMessageIn) message;
         } else if (message instanceof EventMessageIn) {
             lastReceivedEvent = (EventMessageIn) message;
+        }
+    }
+
+    private void enqueueEventFromServer(WirelessMessage message) {
+        if (eventLoop != null) {
+            eventLoop.enqueueServer(message);
         }
     }
 
@@ -292,7 +313,13 @@ public class GameService extends Service {
         }
     }
 
-    public void handleEventFromDevice(WirelessMessage message) {
+    private void enqueueEventFromDevice(WirelessMessage message) {
+        if (eventLoop != null) {
+            eventLoop.enqueueDevice(message);
+        }
+    }
+
+    private void handleEventFromDevice(WirelessMessage message) {
         var type = message.getType();
         var extraValue = ((EventMessageIn) message).getPayload();
         var propagateToServer = true;
