@@ -1,14 +1,14 @@
 #pragma once
 
-//#define VEST
-#define GUN
+#define VEST
+//#define GUN
 
 #define WIRING_MODE_WIRELESS 1
 #define WIRING_MODE_WIRED 2
 
 #define WIRING_MODE WIRING_MODE_WIRED
 
-#define ENABLE_DEBUG_LOGS 1
+#define ENABLE_DEBUG_LOGS 0
 #if ENABLE_DEBUG_LOGS
 #define LOG(message) Serial.println(message)
 #else
