@@ -47,8 +47,7 @@ void setup() {
 
   pinMode(FIRE_PIN, INPUT_PULLUP);
   pinMode(RELOAD_PIN, INPUT_PULLUP);
-  initStatusLedPwm();
-  xTaskCreate(taskStatusLed, "taskStatusLed", 2048, NULL, 1, NULL);
+  initStatusLedPwm(taskStatusLed);
 
 #if WIRING_MODE == WIRING_MODE_WIRELESS || defined(VEST)
   if (!SerialBT.begin(deviceName)) {
@@ -76,7 +75,7 @@ void loop() {
   int reloadButtonState = digitalRead(RELOAD_PIN);
 
   if (fireButtonState == LOW && isOnline()) {
-    if (bulletsLeft > 0 && playerId != 0 && playerState == PLATER_STATE_PLAY) {
+    if (bulletsLeft > 0 && playerState == PLATER_STATE_PLAY) {
       IrSender.sendSony(IR_ADDRESS_GUN, playerId, 1, SIRCS_12_PROTOCOL);
     }
     sendMessageToHost(MSG_TYPE_GUN_SHOT, 0);
@@ -173,7 +172,7 @@ void taskHeartbeat(void* pvParameters) {
 #if WIRING_MODE == WIRING_MODE_WIRED && defined(VEST)
     sendCurrentStateToWiredGun();
 #endif
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
   }
   vTaskDelete(NULL);
 }

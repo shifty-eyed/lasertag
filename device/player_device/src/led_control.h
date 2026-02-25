@@ -25,7 +25,6 @@
 #define ON_LEVEL_NORMAL 255
 #endif
 
-
 static int8_t statusLedChannelForPin(uint8_t pin) {
   switch (pin) {
     case STATUS_LED_RED:
@@ -39,7 +38,7 @@ static int8_t statusLedChannelForPin(uint8_t pin) {
   }
 }
 
-static void initStatusLedPwm() {
+static void initStatusLedPwm(TaskFunction_t statusLedTaskHandle) {
   pinMode(STATUS_LED_ONBOARD, OUTPUT);
   pinMode(STATUS_LED_GUN, OUTPUT);
 
@@ -57,6 +56,8 @@ static void initStatusLedPwm() {
   pinMode(STATUS_LED_GREEN, OUTPUT);
   pinMode(STATUS_LED_BLUE, OUTPUT);
   #endif
+
+  xTaskCreate(statusLedTaskHandle, "statusLedTask", 2048, NULL, 1, NULL);
 }
 
 static void colorLedOn(uint8_t pin, uint8_t brightness) {
