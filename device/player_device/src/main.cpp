@@ -76,7 +76,8 @@ void loop() {
 
   if (fireButtonState == LOW && isOnline()) {
     if (bulletsLeft > 0 && playerState == PLATER_STATE_PLAY) {
-      IrSender.sendSony(IR_ADDRESS_GUN, playerId, 1, SIRCS_12_PROTOCOL);
+      IrSender.sendSony(IR_ADDRESS_GUN, playerId, 2, SIRCS_12_PROTOCOL);
+      bulletsLeft--;
     }
     sendMessageToHost(MSG_TYPE_GUN_SHOT, 0);
     vTaskDelay(GUN_FIRE_INTERVAL / portTICK_PERIOD_MS);
@@ -193,7 +194,7 @@ void taskInboundReceiverFromHost(void* pvParameters) {
       if (type == MSG_TYPE_PING) {
         LOG("PING from BT");
       } else if (type == MSG_TYPE_IN_PLAYER_STATE) {
-        if (len < 3) {
+        if (len < 5) {
           LOG("Invalid player state message length");
           continue;
         }
@@ -204,7 +205,6 @@ void taskInboundReceiverFromHost(void* pvParameters) {
         LOG("Player Info Update: playerId=" + String(playerId) + ", team=" + String(playerTeam) + ", state=" + String(playerState) + ", bullets=" + String(bulletsLeft));
 #if WIRING_MODE == WIRING_MODE_WIRED && defined(VEST)
         sendCurrentStateToWiredGun();
-        //Serial.printf("FWD to GUN: type=%d\n", type);
 #endif
       }
     }
@@ -223,7 +223,6 @@ void taskWiredReceiverFromGun(void* pvParameters) {
         continue;
       }
 
-      //Serial.printf("WIRE len=%d type=%d\n", len, (int)incomingPacket[0]);
       if (incomingPacket[0] == MSG_TYPE_PING) {
         LOG("WIRED: PING from GUN");
         continue;
