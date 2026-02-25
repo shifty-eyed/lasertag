@@ -341,6 +341,7 @@ public class GameService extends Service {
                 propagateToServer = false;
                 soundManager.playReload();
                 thisPlayer.reload();
+                sendCurrentStateToDevice();
             }
             case Messaging.GOT_HIT -> {
                 if (thisPlayer.isAlive()) {
