@@ -19,6 +19,7 @@ static volatile int8_t playerState = PLATER_STATE_IDLE;
 static volatile int8_t bulletsLeft = 0;
 
 static SemaphoreHandle_t sendMessageMutex = nullptr;
+static SemaphoreHandle_t bulletsLeftMutex = nullptr;
 static MessageDebouncer messageDebouncer;
 
 void taskHeartbeat(void* pvParameters);
@@ -47,6 +48,7 @@ void setup() {
   IrReceiver.begin(IR_RECEIVER_PIN);
 
   sendMessageMutex = xSemaphoreCreateMutex();
+  bulletsLeftMutex = xSemaphoreCreateMutex();
 
 #if WIRING_MODE == WIRING_MODE_WIRED
   Serial2.begin(19200, SERIAL_8N1, WIRED_UART_RX_PIN, WIRED_UART_TX_PIN);
@@ -82,10 +84,12 @@ void loop() {
   int reloadButtonState = digitalRead(RELOAD_PIN);
 
   if (fireButtonState == LOW && isOnline()) {
+    xSemaphoreTake(bulletsLeftMutex, portMAX_DELAY);
     if (bulletsLeft > 0 && playerState == PLATER_STATE_PLAY) {
       IrSender.sendSony(IR_ADDRESS_GUN, playerId, 2, SIRCS_12_PROTOCOL);
       bulletsLeft--;
     }
+    xSemaphoreGive(bulletsLeftMutex);
     sendMessageToHost(MSG_TYPE_GUN_SHOT, 0);
     vTaskDelay(IR_DEBOUNCE_WINDOW_MS / portTICK_PERIOD_MS);
   }
@@ -160,11 +164,14 @@ void sendMessageToHost(int8_t messageType, int8_t counterpartPlayerId) {
 }
 
 void sendCurrentStateToWiredGun() {
+    xSemaphoreTake(bulletsLeftMutex, portMAX_DELAY);
+    int8_t bullets = bulletsLeft;
+    xSemaphoreGive(bulletsLeftMutex);
     Serial2.write(MSG_TYPE_IN_PLAYER_STATE);
     Serial2.write(playerId);
     Serial2.write(playerTeam);
     Serial2.write(playerState);
-    Serial2.write(bulletsLeft);
+    Serial2.write(bullets);
     Serial2.write(STOP_BYTE);
     Serial2.flush();
 }
@@ -206,8 +213,10 @@ void taskInboundReceiverFromHost(void* pvParameters) {
         playerId = incomingPacket[1];
         playerTeam = incomingPacket[2];
         playerState = incomingPacket[3];
+        xSemaphoreTake(bulletsLeftMutex, portMAX_DELAY);
         bulletsLeft = incomingPacket[4];
-        LOG("Player Info Update: playerId=" + String(playerId) + ", team=" + String(playerTeam) + ", state=" + String(playerState) + ", bullets=" + String(bulletsLeft));
+        xSemaphoreGive(bulletsLeftMutex);
+        LOG("Player Info Update: playerId=" + String(playerId) + ", team=" + String(playerTeam) + ", state=" + String(playerState) + ", bullets=" + String((int)incomingPacket[4]));
 #if WIRING_MODE == WIRING_MODE_WIRED && defined(VEST)
         sendCurrentStateToWiredGun();
 #endif
@@ -232,6 +241,11 @@ void taskWiredReceiverFromGun(void* pvParameters) {
         LOG("WIRED: PING from GUN");
         continue;
       }
+      xSemaphoreTake(bulletsLeftMutex, portMAX_DELAY);
+      if (incomingPacket[0] == MSG_TYPE_GUN_SHOT && bulletsLeft > 0) {
+        bulletsLeft--;
+      }
+      xSemaphoreGive(bulletsLeftMutex);
       sendMessageToHost(incomingPacket[0], incomingPacket[1]);
       LOG("FWD to BT: type=" + String((int)incomingPacket[0]));
     }
