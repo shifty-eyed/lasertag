@@ -1,7 +1,7 @@
 #pragma once
 
-//#define VEST
-#define GUN
+#define VEST
+//#define GUN
 
 #define WIRING_MODE_WIRELESS 1
 #define WIRING_MODE_WIRED 2
@@ -16,8 +16,8 @@
 #endif
 
 
-#define MAX_PLAYERS 16
-#define GUN_FIRE_INTERVAL 300
+#define MAX_PLAYERS 8
+#define IR_DEBOUNCE_WINDOW_MS 300
 #define STOP_BYTE 125
 
 #define MSG_TYPE_PING 1

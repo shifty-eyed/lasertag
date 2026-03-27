@@ -2,8 +2,10 @@
 #include <IRremote.hpp>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "definitions.h"
 #include "led_control.h"
+#include "message_debounce.h"
 #include <BluetoothSerial.h>
 
 BluetoothSerial SerialBT;
@@ -15,6 +17,9 @@ static volatile int8_t playerId = 0;
 static volatile int8_t playerTeam = TEAM_GREEN;
 static volatile int8_t playerState = PLATER_STATE_IDLE;
 static volatile int8_t bulletsLeft = 0;
+
+static SemaphoreHandle_t sendMessageMutex = nullptr;
+static MessageDebouncer messageDebouncer;
 
 void taskHeartbeat(void* pvParameters);
 void taskInboundReceiverFromHost(void* pvParameters);
@@ -40,6 +45,8 @@ void setup() {
 #endif
   IrSender.begin(IR_LED_PIN);
   IrReceiver.begin(IR_RECEIVER_PIN);
+
+  sendMessageMutex = xSemaphoreCreateMutex();
 
 #if WIRING_MODE == WIRING_MODE_WIRED
   Serial2.begin(19200, SERIAL_8N1, WIRED_UART_RX_PIN, WIRED_UART_TX_PIN);
@@ -80,7 +87,7 @@ void loop() {
       bulletsLeft--;
     }
     sendMessageToHost(MSG_TYPE_GUN_SHOT, 0);
-    vTaskDelay(GUN_FIRE_INTERVAL / portTICK_PERIOD_MS);
+    vTaskDelay(IR_DEBOUNCE_WINDOW_MS / portTICK_PERIOD_MS);
   }
 
   if (reloadButtonState == LOW) {
@@ -93,11 +100,6 @@ void loop() {
 
 
 void taskIRReceiver(void *pvParameters) {
-  uint32_t playersHitRecentHit[MAX_PLAYERS];
-  for (int i = 0; i < MAX_PLAYERS; i++) {
-    playersHitRecentHit[i] = 0;
-  }
-
   while (1) {
     if (IrReceiver.decode()) {
       uint8_t address = (uint8_t)IrReceiver.decodedIRData.address;
@@ -105,9 +107,7 @@ void taskIRReceiver(void *pvParameters) {
       LOG("IR received. Address: " + String(address) + ", Command: " + String(command));
       if (address == IR_ADDRESS_GUN) {
         uint8_t hitByPlayer = command;
-        if (hitByPlayer != playerId 
-          && (millis() - playersHitRecentHit[hitByPlayer] > GUN_FIRE_INTERVAL)) {
-          playersHitRecentHit[hitByPlayer] = millis();
+        if (hitByPlayer != playerId) {
           LOG("Hit by player: " + String(hitByPlayer));
           sendMessageToHost(MSG_TYPE_VEST_HIT, hitByPlayer);
         } else {
@@ -143,15 +143,20 @@ static Stream &getHostStream() {
 }
 
 void sendMessageToHost(int8_t messageType, int8_t counterpartPlayerId) {
-  Stream &outbound = getHostStream();
-  outbound.write(messageType);
-  outbound.write(counterpartPlayerId);
-  outbound.write(STOP_BYTE);
-  outbound.flush();
+  xSemaphoreTake(sendMessageMutex, portMAX_DELAY);
 
-  if (messageType != MSG_TYPE_PING) {
-    LOG("Sent message: " + String(messageType));
+  if (messageDebouncer.allow(messageType, counterpartPlayerId)) {
+    Stream &outbound = getHostStream();
+    outbound.write(messageType);
+    outbound.write(counterpartPlayerId);
+    outbound.write(STOP_BYTE);
+    outbound.flush();
+  
+    if (messageType != MSG_TYPE_PING) {
+      LOG("Sent message: " + String(messageType));
+    }
   }
+  xSemaphoreGive(sendMessageMutex);
 }
 
 void sendCurrentStateToWiredGun() {
