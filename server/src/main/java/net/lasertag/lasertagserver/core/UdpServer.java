@@ -124,6 +124,10 @@ public class UdpServer {
 				if (actor.getType() == Actor.Type.HEALTH || actor.getType() == Actor.Type.AMMO) {
 					sendSettingsToAllDispensers();
 				}
+				// TODO: send state depending on game status, if game  is ctf and playing send on
+				if (actor.getType() == Actor.Type.FLAG) {
+					sendEventToClient(MessageType.FLAG_DEVICE_STATE, actor, Messaging.FLAG_OFF);
+				}
 			}
 			lastPingTime.put(actor, System.currentTimeMillis());
 

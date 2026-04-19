@@ -16,7 +16,10 @@ public abstract class Messaging {
 	public static final int TEAM_PURPLE = 4;
 	public static final int TEAM_CYAN = 5;
 
-	public static final Set<Byte> PING_GROUP = new HashSet<>(Arrays.asList(PLAYER_PING.id(), HEALTH_DISPENSER_PING.id(), AMMO_DISPENSER_PING.id()));
+	public static final byte FLAG_OFF = 0;
+	public static final byte FLAG_ON = 1;
+
+	public static final Set<Byte> PING_GROUP = new HashSet<>(Arrays.asList(PLAYER_PING.id(), HEALTH_DISPENSER_PING.id(), AMMO_DISPENSER_PING.id(), FLAG_PING.id()));
 
 	private static final Map<Integer, MessageType> MESSAGE_TYPE_BY_ID = MessageType.populateMessageTypeByIdMap();
 

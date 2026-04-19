@@ -20,8 +20,15 @@ TaskHandle_t udpReceiveTaskHandle = NULL;
 
 volatile uint32_t timeSinceLastPingReceived = 999;
 volatile uint32_t timeSinceLastPingSent = 0;
+
+#ifdef IS_DISPENSER
 volatile uint32_t dispenseTimeoutSec = 30;
 volatile uint32_t timeSinceLastDispense = dispenseTimeoutSec;
+#endif
+
+#ifdef IS_FLAG
+volatile uint8_t flagState = FLAG_STATE_OFF;
+#endif
 
 #define PING_EVERY_SECONDS 3
 #define IR_SIGNAL_EVERY_MILLIS 2000
@@ -66,10 +73,17 @@ void setup() {
   xTaskCreate(taskUdpReceiver, "taskUdpReceiver", 2048, NULL, 1, &udpReceiveTaskHandle);
 }
 
-void loop() {
+bool shouldBeacon() {
+#ifdef IS_FLAG
+  return isOnline() && flagState == FLAG_STATE_ON;
+#else
+  return isOnline() && timeSinceLastDispense > dispenseTimeoutSec;
+#endif
+}
 
-  if (isOnline() && timeSinceLastDispense > dispenseTimeoutSec) {
-    IrSender.sendSony(IR_ADDRESS, DEVICE_ID, 2, SIRCS_12_PROTOCOL);
+void loop() {
+  if (shouldBeacon()) {
+    IrSender.sendSony(IR_ADDRESS, IR_COMMAND, 2, SIRCS_12_PROTOCOL);
     digitalWrite(MAIN_LIGHT_LED, HIGH);
     vTaskDelay(IR_SIGNAL_EVERY_MILLIS / portTICK_PERIOD_MS);
   } else {
@@ -88,7 +102,9 @@ void taskTimerTick(void* pvParameters) {
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     timeSinceLastPingReceived ++;
     timeSinceLastPingSent ++;
+#ifdef IS_DISPENSER
     timeSinceLastDispense ++;
+#endif
   }
   vTaskDelete(NULL);
 }
@@ -134,7 +150,9 @@ void taskUdpReceiver(void* pvParameters) {
       int8_t type = incomingPacket[0];
       if (type == MSG_TYPE_SERVER_PING) {
         //Serial.printf("Received Ping ACK: %d\n", incomingPacket[0]);
-      } else if (type == MSG_TYPE_IN_DISPENSER_USED) {
+      }
+#ifdef IS_DISPENSER
+      else if (type == MSG_TYPE_IN_DISPENSER_USED) {
         timeSinceLastDispense = 0;
         digitalWrite(MAIN_LIGHT_LED, LOW);
         Serial.println("Received MSG_TYPE_IN_DISPENSER_USED");
@@ -143,9 +161,20 @@ void taskUdpReceiver(void* pvParameters) {
           Serial.println("Invalid MSG_TYPE_IN_DISPENSER_SET_TIMEOUT message length");
           continue;
         }
-        dispenseTimeoutSec = incomingPacket[1] * 10; // with 10 sec steps
+        dispenseTimeoutSec = incomingPacket[1] * 10;  // with 10 sec steps
         Serial.printf("Received DISPENSER_SET_TIMEOUT: %d\n", dispenseTimeoutSec);
       }
+#endif
+#ifdef IS_FLAG
+      else if (type == MSG_TYPE_IN_FLAG_STATE) {
+        if (len < 2) {
+          Serial.println("Invalid MSG_TYPE_IN_FLAG_STATE message length");
+          continue;
+        }
+        flagState = incomingPacket[1];
+        Serial.printf("Received FLAG_STATE: %d\n", flagState);
+      }
+#endif
     }
     vTaskDelay(20 / portTICK_PERIOD_MS);
   }

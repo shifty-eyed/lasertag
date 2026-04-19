@@ -10,6 +10,7 @@ public record MessageType(byte id, String name, Direction directionFlag) {
 	public static final MessageType PLAYER_PING = new MessageType((byte) 41, "PLAYER_PING", CLIENT_TO_SERVER);
 	public static final MessageType HEALTH_DISPENSER_PING = new MessageType((byte) 45, "HEALTH_DISPENSER_PING", CLIENT_TO_SERVER);
 	public static final MessageType AMMO_DISPENSER_PING = new MessageType((byte) 46, "AMMO_DISPENSER_PING", CLIENT_TO_SERVER);
+	public static final MessageType FLAG_PING = new MessageType((byte) 47, "FLAG_PING", CLIENT_TO_SERVER);
 
 	public static final MessageType YOU_HIT_SOMEONE = new MessageType((byte) 4, "YOU_HIT_SOMEONE", CLIENT_TO_SERVER);
 	public static final MessageType GOT_HIT = new MessageType((byte) 5, "GOT_HIT", CLIENT_TO_SERVER);
@@ -38,6 +39,7 @@ public record MessageType(byte id, String name, Direction directionFlag) {
 
 	public static final MessageType DISPENSER_USED = new MessageType((byte) 51, "DISPENSER_USED", SERVER_TO_CLIENT);
 	public static final MessageType DISPENSER_SET_TIMEOUT = new MessageType((byte) 53, "DISPENSER_SET_TIMEOUT", SERVER_TO_CLIENT);
+	public static final MessageType FLAG_DEVICE_STATE = new MessageType((byte) 54, "FLAG_DEVICE_STATE", SERVER_TO_CLIENT);
 
 	public static final MessageType GAME_TIMER = new MessageType((byte) 101, "GAME_TIMER", SERVER_TO_CLIENT);
 	public static final MessageType LOST_CONNECTION = new MessageType((byte) 102, "LOST_CONNECTION", SERVER_TO_CLIENT);

@@ -59,18 +59,8 @@ public class Game implements GameEventsListener {
 			useDispenser(player, Actor.Type.HEALTH, message.getExtraValue(), MessageType.GIVE_HEALTH_TO_PLAYER);
 		} else if (type == MessageType.GOT_AMMO.id()) {
 			useDispenser(player, Actor.Type.AMMO, message.getExtraValue(), MessageType.GIVE_AMMO_TO_PLAYER);
-		} else if (type == MessageType.FLAG_TAKEN.id()) {
-			player.setFlagCarrier(true);
-			broadcastFlagEvent(MessageType.FLAG_TAKEN, player);
-		} else if (type == MessageType.FLAG_CAPTURED.id()) {
-			actorRegistry.incrementTeamScore(player.getTeamId());
-			player.setFlagCarrier(false);
-			broadcastFlagEvent(MessageType.FLAG_CAPTURED, player);
-
-			var teamScore = actorRegistry.getTeamScores().get(player.getTeamId());
-			if (teamScore >= getSettings().getFragLimit()) {
-				eventConsoleEndGame();
-			}
+		} else if (type == MessageType.GOT_FLAG.id()) {
+			onPlayerGotFlag(player, message.getExtraValue());
 		}
 
 		if (type != MessageType.GOT_AMMO.id() && type != MessageType.GOT_HEALTH.id()) {
@@ -87,15 +77,38 @@ public class Game implements GameEventsListener {
 		udpServer.sendEventToClient(MessageType.YOU_SCORED, hitByPlayer, (byte)player.getId());
 		player.setAssignedRespawnPoint(actorRegistry.getRandomRespawnPointId());
 
-		// CTF flag carrier killed, drop the flag
 		if (getGameType() == GameType.CTF && player.isFlagCarrier()) {
 			player.setFlagCarrier(false);
+			var enemyTeamId = player.getTeamId() == Messaging.TEAM_RED ? Messaging.TEAM_BLUE : Messaging.TEAM_RED;
+			var enemyFlag = actorRegistry.getFlagByTeamId(enemyTeamId);
+			udpServer.sendEventToClient(MessageType.FLAG_DEVICE_STATE, enemyFlag, Messaging.FLAG_ON);
 			broadcastFlagEvent(MessageType.FLAG_LOST, player);
 		}
 
 		var vitalScore = isTeamPlay() ? actorRegistry.getTeamScores().get(hitByPlayer.getTeamId()) : hitByPlayer.getScore();
 		if (vitalScore >= getSettings().getFragLimit()) {
 			eventConsoleEndGame();
+		}
+	}
+
+	private void onPlayerGotFlag(Player player, int flagTeamId) {
+		var flagActor = actorRegistry.getFlagByTeamId(flagTeamId);
+		if (flagTeamId != player.getTeamId()) {
+			player.setFlagCarrier(true);
+			udpServer.sendEventToClient(MessageType.FLAG_DEVICE_STATE, flagActor, Messaging.FLAG_OFF);
+			broadcastFlagEvent(MessageType.FLAG_TAKEN, player);
+		} else if (player.isFlagCarrier()) {
+			player.setFlagCarrier(false);
+			var enemyTeamId = player.getTeamId() == Messaging.TEAM_RED ? Messaging.TEAM_BLUE : Messaging.TEAM_RED;
+			var enemyFlag = actorRegistry.getFlagByTeamId(enemyTeamId);
+			udpServer.sendEventToClient(MessageType.FLAG_DEVICE_STATE, enemyFlag, Messaging.FLAG_ON);
+			actorRegistry.incrementTeamScore(player.getTeamId());
+			broadcastFlagEvent(MessageType.FLAG_CAPTURED, player);
+
+			var teamScore = actorRegistry.getTeamScores().get(player.getTeamId());
+			if (teamScore >= getSettings().getFragLimit()) {
+				eventConsoleEndGame();
+			}
 		}
 	}
 
@@ -122,6 +135,10 @@ public class Game implements GameEventsListener {
 			player.setAssignedRespawnPoint(respawnPointsIt.next());
 		});
 
+		if (gameType == GameType.CTF) {
+			sendAllFlagDevicesState(Messaging.FLAG_ON);
+		}
+
 		setIsGamePlaying(true);
 		sendPlayerValuesSnapshotToAll(true);
 		actorRegistry.streamPlayers().forEach(player -> {
@@ -134,9 +151,9 @@ public class Game implements GameEventsListener {
 
 	@Override
 	public void eventConsoleEndGame() {
-		
 		log.info("Ending game");
 		setIsGamePlaying(false);
+		sendAllFlagDevicesState(Messaging.FLAG_OFF);
 
 		Player leadPlayer = actorRegistry.getLeadPlayer();
 		int leadTeam = actorRegistry.getLeadTeam();
@@ -193,6 +210,12 @@ public class Game implements GameEventsListener {
 				udpServer.sendEventToClient(flagEventType, toPlayer, (byte) player.getId());
 			}
 		}
+	}
+
+	private void sendAllFlagDevicesState(byte state) {
+		actorRegistry.streamByType(Actor.Type.FLAG)
+			.filter(Actor::isOnline)
+			.forEach(flag -> udpServer.sendEventToClient(MessageType.FLAG_DEVICE_STATE, flag, state));
 	}
 
 	private void refreshConsoleUI(boolean isPlaying) {

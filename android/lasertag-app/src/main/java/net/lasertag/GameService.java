@@ -376,6 +376,12 @@ public class GameService extends Service {
                     propagateToServer = false;
                 }
             }
+            case Messaging.GOT_FLAG -> {
+                propagateToActivity = false;
+                if (!thisPlayer.isAlive() || !isGameRunning) {
+                    propagateToServer = false;
+                }
+            }
             case Messaging.RESPAWN -> {
                 if (extraValue == thisPlayer.getAssignedRespawnPoint()) {
                     soundManager.playRespawn();

@@ -12,7 +12,8 @@ public abstract class Actor {
 	public enum Type {
 		PLAYER,
 		HEALTH,
-		AMMO
+		AMMO,
+		FLAG
 	}
 
 	private final int id;

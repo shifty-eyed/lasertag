@@ -31,6 +31,9 @@ public class ActorRegistry {
 			actors.add(new Dispenser(i, Actor.Type.AMMO));
 			actors.add(new Dispenser(i, Actor.Type.HEALTH));
 		}
+		for (int i = 0; i < 2; i++) { // 0=red, 1=blue
+			actors.add(new Dispenser(i, Actor.Type.FLAG));
+		}
 	}
 
 	public Stream<Actor> streamByType(Actor.Type type) {
@@ -65,6 +68,8 @@ public class ActorRegistry {
 			return getActorByTypeAndId(Actor.Type.HEALTH, id);
 		} else if (type == MessageType.AMMO_DISPENSER_PING.id()) {
 			return getActorByTypeAndId(Actor.Type.AMMO, id);
+		} else if (type == MessageType.FLAG_PING.id()) {
+			return getActorByTypeAndId(Actor.Type.FLAG, id);
 		} else {
 			return getActorByTypeAndId(Actor.Type.PLAYER, id);
 		}
@@ -125,6 +130,10 @@ public class ActorRegistry {
 
 	public int getRandomRespawnPointId() {
 		return respawnPointsIds.get(new Random().nextInt(respawnPointsIds.size()));
+	}
+
+	public Dispenser getFlagByTeamId(int teamId) {
+		return (Dispenser) getActorByTypeAndId(Actor.Type.FLAG, teamId);
 	}
 
 	public Map<String, List<Integer>> getOnlineDispensers() {
