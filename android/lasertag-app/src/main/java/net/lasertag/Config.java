@@ -31,6 +31,7 @@ public class Config {
     public static final int STATE_GAME = 1;
     public static final int STATE_DEAD = 2;
     public static final int STATE_OFFLINE = 3;
+    public static final int STATE_PLAY_FLAG_CARRIER = 4;
 
     public static final int SERVER_PORT = 9878;
     public static final int LISTENING_PORT = 1234;

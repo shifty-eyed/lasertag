@@ -74,6 +74,7 @@ data class Player(
         damage = player.damage
         bulletsMax = player.bulletsMax
         assignedRespawnPoint = player.assignedRespawnPoint
+        flagCarrier = player.flagCarrier
 
         if (player.name.isNotEmpty()) {
             name = player.name

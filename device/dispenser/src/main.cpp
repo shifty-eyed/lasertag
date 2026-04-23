@@ -83,7 +83,7 @@ bool shouldBeacon() {
 
 void loop() {
   if (shouldBeacon()) {
-    IrSender.sendSony(IR_ADDRESS, IR_COMMAND, 2, SIRCS_12_PROTOCOL);
+    IrSender.sendSony(IR_ADDRESS, DEVICE_ID, 2, SIRCS_12_PROTOCOL);
     digitalWrite(MAIN_LIGHT_LED, HIGH);
     vTaskDelay(IR_SIGNAL_EVERY_MILLIS / portTICK_PERIOD_MS);
   } else {

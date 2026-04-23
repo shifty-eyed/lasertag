@@ -208,11 +208,15 @@ public class GameService extends Service {
     }
 
     private void sendCurrentStateToDevice() {
+        int deviceState = currentState;
+        if (deviceState == STATE_GAME && thisPlayer.getFlagCarrier()) {
+            deviceState = STATE_PLAY_FLAG_CARRIER;
+        }
         var message = new MessageToDevice(
                 Messaging.DEVICE_PLAYER_STATE,
                 config.getPlayerId(),
                 (byte) thisPlayer.getTeamId(),
-                (byte) currentState,
+                (byte) deviceState,
                 (byte) thisPlayer.getBulletsInMagazine());
         vestComm.sendMessageToDevice(message);
     }

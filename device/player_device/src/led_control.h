@@ -112,12 +112,19 @@ void ledControlCycle(bool isOnline, int8_t playerTeam, int8_t playerState) {
             colorLedOn(STATUS_LED_GREEN, ON_LEVEL_NORMAL);
             break;
         }
-        if (playerState == PLATER_STATE_PLAY) {
-        vTaskDelay(1000);
+        if (playerState == PLATER_STATE_PLAY_FLAG_CARRIER) {
+            vTaskDelay(500);
+            colorLedsOff();
+            colorLedOn(STATUS_LED_RED, ON_LEVEL_NORMAL);
+            colorLedOn(STATUS_LED_GREEN, ON_LEVEL_NORMAL);
+            colorLedOn(STATUS_LED_BLUE, ON_LEVEL_NORMAL);
+            vTaskDelay(500);
+        } else if (playerState == PLATER_STATE_PLAY) {
+            vTaskDelay(1000);
         } else {
-        vTaskDelay(30);
-        colorLedsOff();
-        vTaskDelay(2000);
+            vTaskDelay(30);
+            colorLedsOff();
+            vTaskDelay(2000);
         }
     }
 }

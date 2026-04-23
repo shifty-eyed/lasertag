@@ -4,26 +4,26 @@
 //#define HEALTH
 //#define AMMO
 //#define FLAG_RED
-//#define FLAG_BLUE
+#define FLAG_BLUE
 
 #ifdef HEALTH
   #define IR_ADDRESS (IR_ADDRESS_HEALTH)
-  #define IR_COMMAND DEVICE_ID
   #define MSG_TYPE_PING (MSG_TYPE_HEALTH_DISPENSER_PING)
   #define IS_DISPENSER
 #elif defined(FLAG_RED)
+  #undef DEVICE_ID
+  #define DEVICE_ID 0
   #define IR_ADDRESS (IR_ADDRESS_FLAG)
-  #define IR_COMMAND 0
   #define MSG_TYPE_PING (MSG_TYPE_FLAG_PING)
   #define IS_FLAG
 #elif defined(FLAG_BLUE)
+  #undef DEVICE_ID
+  #define DEVICE_ID 1
   #define IR_ADDRESS (IR_ADDRESS_FLAG)
-  #define IR_COMMAND 1
   #define MSG_TYPE_PING (MSG_TYPE_FLAG_PING)
   #define IS_FLAG
 #else
   #define IR_ADDRESS (IR_ADDRESS_AMMO)
-  #define IR_COMMAND DEVICE_ID
   #define MSG_TYPE_PING (MSG_TYPE_AMMO_DISPENSER_PING)
   #define IS_DISPENSER
 #endif

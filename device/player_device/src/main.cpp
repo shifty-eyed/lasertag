@@ -34,6 +34,10 @@ static bool isOnline() {
   return pingsSentWithNoResponse < 3;
 }
 
+static bool isPlayState() {
+  return playerState == PLATER_STATE_PLAY || playerState == PLATER_STATE_PLAY_FLAG_CARRIER;
+}
+
 void taskStatusLed(void *pvParameters) {
   while (1) {
     ledControlCycle(isOnline(), playerTeam, playerState);
@@ -85,7 +89,7 @@ void loop() {
 
   if (fireButtonState == LOW && isOnline()) {
     xSemaphoreTake(bulletsLeftMutex, portMAX_DELAY);
-    if (bulletsLeft > 0 && playerState == PLATER_STATE_PLAY) {
+    if (bulletsLeft > 0 && isPlayState()) {
       IrSender.sendSony(IR_ADDRESS_GUN, playerId, 2, SIRCS_12_PROTOCOL);
       bulletsLeft--;
     }
@@ -121,15 +125,18 @@ void taskIRReceiver(void *pvParameters) {
         uint8_t respawnPointId = command;
         LOG("Respawn");
         sendMessageToHost(MSG_TYPE_RESPAWN, respawnPointId);
-      } else if (address == IR_ADDRESS_AMMO && playerState == PLATER_STATE_PLAY) {
+      } else if (address == IR_ADDRESS_AMMO && isPlayState()) {
         LOG("Got Ammo");
         sendMessageToHost(MSG_TYPE_GOT_AMMO, command);
-      } else if (address == IR_ADDRESS_HEALTH && playerState == PLATER_STATE_PLAY) {
+      } else if (address == IR_ADDRESS_HEALTH && isPlayState()) {
         LOG("Got Health");
         sendMessageToHost(MSG_TYPE_GOT_HEALTH, command);
-      } else if (address == IR_ADDRESS_FLAG && playerState == PLATER_STATE_PLAY) {
-        LOG("Flag");
-        sendMessageToHost(MSG_TYPE_FLAG, command);
+      } else if (address == IR_ADDRESS_FLAG && isPlayState()) {
+        uint8_t flagTeamId = command;
+        if (flagTeamId != playerTeam || playerState == PLATER_STATE_PLAY_FLAG_CARRIER) {
+          LOG("Flag");
+          sendMessageToHost(MSG_TYPE_FLAG, command);
+        }
       }
       IrReceiver.resume();
     }
