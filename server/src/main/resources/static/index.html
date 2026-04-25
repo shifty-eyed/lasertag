@@ -27,10 +27,11 @@
         <section class="controls-section">
             <div class="control-group">
                 <label for="timeLimit">Time Limit (min):</label>
-                <input 
-                    type="number" 
-                    id="timeLimit" 
-                    v-model.number="settings.general.timeLimitMinutes" 
+                <input
+                    type="number"
+                    id="timeLimit"
+                    v-model.number="settings.general.timeLimitMinutes"
+                    @change="updateGeneralSettings"
                     :disabled="gameState.playing"
                     min="1"
                     max="60">
@@ -38,10 +39,11 @@
 
             <div class="control-group">
                 <label for="fragLimit">Frag Limit:</label>
-                <input 
-                    type="number" 
-                    id="fragLimit" 
-                    v-model.number="settings.general.fragLimit" 
+                <input
+                    type="number"
+                    id="fragLimit"
+                    v-model.number="settings.general.fragLimit"
+                    @change="updateGeneralSettings"
                     :disabled="gameState.playing"
                     min="1"
                     max="100">
@@ -49,9 +51,10 @@
 
             <div class="control-group">
                 <label for="gameType">Game Type:</label>
-                <select 
-                    id="gameType" 
-                    v-model="settings.general.gameType" 
+                <select
+                    id="gameType"
+                    v-model="settings.general.gameType"
+                    @change="updateGeneralSettings"
                     :disabled="gameState.playing">
                     <option v-for="option in gameTypeOptions" :key="option.value" :value="option.value">
                         {{ option.label }}
@@ -62,22 +65,16 @@
             <div class="control-group">
                 <label for="presetSelect">Preset:</label>
                 <div class="preset-controls">
-                    <select 
-                        id="presetSelect" 
-                        v-model="selectedPreset" 
+                    <select
+                        id="presetSelect"
+                        v-model="selectedPreset"
+                        @change="loadPreset"
                         :disabled="gameState.playing">
-                        <option value="New">New...</option>
+                        <option value="New...">New...</option>
                         <option v-for="preset in presets" :key="preset" :value="preset">{{ preset }}</option>
                     </select>
-                    <button 
-                        @click="loadPreset" 
-                        :disabled="gameState.playing || selectedPreset === 'New...'"
-                        class="btn-icon"
-                        title="Load Preset">
-                        📥
-                    </button>
-                    <button 
-                        @click="savePreset" 
+                    <button
+                        @click="savePreset"
                         :disabled="gameState.playing"
                         class="btn-icon"
                         title="Save Preset">

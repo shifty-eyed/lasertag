@@ -74,14 +74,27 @@ public class GameController {
 	}
 
 	@PostMapping("/game/start")
-	public ResponseEntity<Map<String, String>> startGame(@RequestBody StartGameRequest request) {
+	public ResponseEntity<Map<String, String>> startGame(@RequestBody GeneralSettingsRequest request) {
+		applyGeneralSettings(request);
+		gameEventsListener.eventConsoleStartGame(
+			request.getTimeLimit(),
+			request.getFragLimit(),
+			GameType.valueOf(request.getGameType())
+		);
+		return ResponseEntity.ok(Map.of("status", "Game started"));
+	}
+
+	@PutMapping("/settings/general")
+	public ResponseEntity<Map<String, String>> updateGeneralSettings(@RequestBody GeneralSettingsRequest request) {
+		applyGeneralSettings(request);
+		return ResponseEntity.ok(Map.of("status", "Settings updated"));
+	}
+
+	private void applyGeneralSettings(GeneralSettingsRequest request) {
 		gameSettings.getCurrent().setTimeLimitMinutes(request.getTimeLimit());
 		gameSettings.getCurrent().setFragLimit(request.getFragLimit());
-		GameType gameType = GameType.valueOf(request.getGameType());
-		gameSettings.getCurrent().setGameType(gameType);
+		gameSettings.getCurrent().setGameType(GameType.valueOf(request.getGameType()));
 		gameSettings.syncToActors();
-		gameEventsListener.eventConsoleStartGame(request.getTimeLimit(), request.getFragLimit(), gameType);
-		return ResponseEntity.ok(Map.of("status", "Game started"));
 	}
 
 	@PostMapping("/game/end")
@@ -161,7 +174,7 @@ public class GameController {
 
 	@Getter
 	@Setter
-	public static class StartGameRequest {
+	public static class GeneralSettingsRequest {
 		private int timeLimit;
 		private int fragLimit;
 		private String gameType;

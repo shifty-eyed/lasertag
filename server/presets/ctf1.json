@@ -1,6 +1,6 @@
 {
-  "fragLimit" : 10,
-  "gameType" : "TEAM_DM",
+  "fragLimit" : 3,
+  "gameType" : "CTF",
   "timeLimitMinutes" : 15,
   "playerSettings" : {
     "0" : {

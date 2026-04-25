@@ -1,5 +1,7 @@
 package net.lasertag.lasertagserver.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import net.lasertag.lasertagserver.model.Actor;
 import net.lasertag.lasertagserver.model.Messaging;
@@ -8,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GameSettingsPreset {
 
     @Data
@@ -44,6 +47,7 @@ public class GameSettingsPreset {
 	private GameType gameType = GameType.DM;
 	private int timeLimitMinutes = 15;
 
+	@JsonIgnore
 	public boolean isTeamPlay() {
 		return gameType.isTeamBased();
 	}
@@ -68,6 +72,7 @@ public class GameSettingsPreset {
 		}
 	}
 
+	@JsonIgnore
 	public Map<String, Object> getAllSettings() {
 		Map<String, Object> allSettings = new HashMap<>();
         Map<String, Object> general = new HashMap<>();
@@ -94,6 +99,7 @@ public class GameSettingsPreset {
 		return playerSettings.get(playerId);
 	}
 
+	@JsonIgnore
 	public Map<Integer, PlayerSettings> getAllPlayerSettings() {
 		return new HashMap<>(playerSettings);
 	}

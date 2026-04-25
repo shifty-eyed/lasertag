@@ -280,6 +280,29 @@ createApp({
             }
         },
 
+        async updateGeneralSettings() {
+            try {
+                const response = await fetch('/api/settings/general', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        timeLimit: this.settings.general.timeLimitMinutes,
+                        fragLimit: this.settings.general.fragLimit,
+                        gameType: this.settings.general.gameType
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update settings');
+                }
+            } catch (error) {
+                console.error('Error updating general settings:', error);
+                alert('Failed to update settings');
+            }
+        },
+
         async updatePlayer(player) {
             try {
                 const response = await fetch(`/api/players/${player.id}`, {
