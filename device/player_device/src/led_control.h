@@ -20,7 +20,7 @@
 #define STATUS_LED_BLUE_CHANNEL 4
 
 #ifdef VEST
-#define ON_LEVEL_NORMAL 40
+#define ON_LEVEL_NORMAL 50
 #else
 #define ON_LEVEL_NORMAL 255
 #endif
@@ -113,12 +113,12 @@ void ledControlCycle(bool isOnline, int8_t playerTeam, int8_t playerState) {
             break;
         }
         if (playerState == PLATER_STATE_PLAY_FLAG_CARRIER) {
-            vTaskDelay(500);
+            vTaskDelay(250);
             colorLedsOff();
             colorLedOn(STATUS_LED_RED, ON_LEVEL_NORMAL);
             colorLedOn(STATUS_LED_GREEN, ON_LEVEL_NORMAL);
             colorLedOn(STATUS_LED_BLUE, ON_LEVEL_NORMAL);
-            vTaskDelay(500);
+            vTaskDelay(250);
         } else if (playerState == PLATER_STATE_PLAY) {
             vTaskDelay(1000);
         } else {

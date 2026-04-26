@@ -1,5 +1,6 @@
 package net.lasertag.lasertagserver.core;
 
+import net.lasertag.lasertagserver.model.Actor;
 import net.lasertag.lasertagserver.model.Messaging;
 import net.lasertag.lasertagserver.model.Player;
 
@@ -15,5 +16,7 @@ public interface GameEventsListener {
 	void onPlayerJoinedOrLeft();
 
 	void onPlayerDataUpdated(Player player, boolean isNameUpdated);
+
+	byte getFlagDeviceStateOnConnect(Actor flagActor);
 
 }

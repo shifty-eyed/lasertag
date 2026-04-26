@@ -212,6 +212,17 @@ public class Game implements GameEventsListener {
 		}
 	}
 
+	@Override
+	public byte getFlagDeviceStateOnConnect(Actor flagActor) {
+		if (!isGamePlaying || getGameType() != GameType.CTF) {
+			return Messaging.FLAG_OFF;
+		}
+		int flagTeamId = flagActor.getId();
+		boolean carried = actorRegistry.streamPlayers()
+			.anyMatch(p -> p.isFlagCarrier() && p.getTeamId() != flagTeamId);
+		return carried ? Messaging.FLAG_OFF : Messaging.FLAG_ON;
+	}
+
 	private void sendAllFlagDevicesState(byte state) {
 		actorRegistry.streamByType(Actor.Type.FLAG)
 			.filter(Actor::isOnline)
