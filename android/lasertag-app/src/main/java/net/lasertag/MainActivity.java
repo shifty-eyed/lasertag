@@ -297,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private void startFlagBlinkAnimation() {
         if (flagBlinkAnimator != null && flagBlinkAnimator.isStarted()) return;
         flagBlinkAnimator = ObjectAnimator.ofFloat(flagCarrierBanner, "alpha", 1f, 0.3f);
-        flagBlinkAnimator.setDuration(600);
+        flagBlinkAnimator.setDuration(300);
         flagBlinkAnimator.setRepeatMode(ValueAnimator.REVERSE);
         flagBlinkAnimator.setRepeatCount(ValueAnimator.INFINITE);
         flagBlinkAnimator.start();
