@@ -261,6 +261,21 @@
             android:layout_height="1dp"
             android:background="@color/grey" />
 
+        <TextView
+            android:id="@+id/flag_carrier_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:minHeight="96dp"
+            android:gravity="center"
+            android:padding="12dp"
+            android:text="@string/flag_carrier_banner_text"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:background="@android:color/holo_red_dark"
+            android:visibility="gone" />
+
     </LinearLayout>
 
 </LinearLayout>

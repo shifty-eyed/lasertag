@@ -27,7 +27,15 @@ public class Messaging {
     public static final byte GOT_HEALTH = 16;
     public static final byte GOT_AMMO = 17;
     public static final byte GOT_FLAG = 18;
-    public static final byte RESPAWN_POINT_WRONG = 19;
+
+    // Server-to-client CTF events (must match server's MessageType ids)
+    public static final byte FLAG_TAKEN = 19;
+    public static final byte FLAG_LOST = 20;
+    public static final byte FLAG_CAPTURED = 21;
+
+    // Local-only event (never sent over the wire) - moved out of the 19-21
+    // range to avoid colliding with the server's CTF event ids above.
+    public static final byte RESPAWN_POINT_WRONG = 119;
 
     public static final byte GIVE_HEALTH_TO_PLAYER = 26;
     public static final byte GIVE_AMMO_TO_PLAYER = 27;

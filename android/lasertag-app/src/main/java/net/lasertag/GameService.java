@@ -287,6 +287,8 @@ public class GameService extends Service {
                 thisPlayer.increaseBullets(amount);
                 soundManager.playGotAmmo();
             }
+            case Messaging.FLAG_TAKEN -> soundManager.playFlagTaken();
+            case Messaging.FLAG_CAPTURED -> soundManager.playFlagCaptured();
             case Messaging.PLAYER_VALUES_SNAPSHOT -> {
                 var statsMessage = (StatsMessageIn) message;
                 isGameRunning = statsMessage.isGameRunning();

@@ -2,6 +2,8 @@ package net.lasertag;
 
 import static net.lasertag.Config.*;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -97,6 +99,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private TextView gameTime;
     private LinearLayout bulletsBar;
     private LinearLayout teamScoresBar;
+    private TextView flagCarrierBanner;
+    private ObjectAnimator flagBlinkAnimator;
+    private boolean wasFlagCarrier = false;
 
     private TextToSpeech textToSpeech;
 
@@ -148,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         gameTime = findViewById(R.id.game_timer);
         bulletsBar = findViewById(R.id.bullets_bar);
         teamScoresBar = findViewById(R.id.team_scores);
+        flagCarrierBanner = findViewById(R.id.flag_carrier_banner);
 
         deviceStatusGun = findViewById(R.id.device_status_gun);
         deviceStatusGun.setVisibility(View.GONE);
@@ -265,6 +271,46 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 announcementText.setText("Offline");
             }
         }
+        updateFlagCarrierBanner(thisPlayer);
+    }
+
+    private void updateFlagCarrierBanner(Player player) {
+        if (flagCarrierBanner == null) return;
+        boolean shouldShow = currentState == STATE_GAME
+                && player != null
+                && player.getFlagCarrier();
+        if (shouldShow) {
+            flagCarrierBanner.setBackgroundColor(ResourcesCompat.getColor(getResources(),
+                    config.getTeamColor(player.getTeamId(), true), null));
+            flagCarrierBanner.setVisibility(View.VISIBLE);
+            startFlagBlinkAnimation();
+            if (!wasFlagCarrier) {
+                speak("You have the flag, return to base");
+            }
+        } else {
+            stopFlagBlinkAnimation();
+            flagCarrierBanner.setVisibility(View.GONE);
+        }
+        wasFlagCarrier = shouldShow;
+    }
+
+    private void startFlagBlinkAnimation() {
+        if (flagBlinkAnimator != null && flagBlinkAnimator.isStarted()) return;
+        flagBlinkAnimator = ObjectAnimator.ofFloat(flagCarrierBanner, "alpha", 1f, 0.3f);
+        flagBlinkAnimator.setDuration(600);
+        flagBlinkAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        flagBlinkAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        flagBlinkAnimator.start();
+    }
+
+    private void stopFlagBlinkAnimation() {
+        if (flagBlinkAnimator != null) {
+            flagBlinkAnimator.cancel();
+            flagBlinkAnimator = null;
+        }
+        if (flagCarrierBanner != null) {
+            flagCarrierBanner.setAlpha(1f);
+        }
     }
 
     private void handleEvent(EventMessageIn message) {
@@ -289,6 +335,26 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     } else {
                         showToasterMessage("Game Over!\n" + (otherPlayer == null ? "No one" : otherPlayer.getName()) + " wins.", 4000);
                     }
+                }
+            }
+            case Messaging.FLAG_TAKEN -> {
+                if (otherPlayer != null && otherPlayer.getId() != config.getPlayerId()) {
+                    showToasterMessage(otherName + " has the flag!", 1800);
+                }
+                // If it is me, the persistent banner will appear via the next snapshot.
+            }
+            case Messaging.FLAG_LOST -> {
+                if (otherPlayer != null && otherPlayer.getId() == config.getPlayerId()) {
+                    showToasterMessage("Flag dropped!", 1500);
+                } else {
+                    showToasterMessage(otherName + " dropped the flag", 1500);
+                }
+            }
+            case Messaging.FLAG_CAPTURED -> {
+                if (otherPlayer != null && otherPlayer.getId() == config.getPlayerId()) {
+                    showToasterMessage("You scored!", 2500);
+                } else {
+                    showToasterMessage(otherName + " scored!", 2000);
                 }
             }
             case Messaging.GIVE_HEALTH_TO_PLAYER ->
@@ -332,6 +398,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         playerScore.setText(String.valueOf(player.getScore()));
         playerTotalAmmo.setText(String.valueOf(player.getBulletsTotal()));
         refreshBulletsBar(player.getBulletsInMagazine());
+        updateFlagCarrierBanner(player);
     }
 
     private void updatePlayersInfoAndAnnounceLeaderChange(Player[] newPlayers) {
@@ -381,7 +448,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             row.setBackgroundColor(ResourcesCompat.getColor(getResources(), config.getTeamColor(player.getTeamId(), true), null));
 
             TextView nameText = new TextView(this);
-            nameText.setText(player.getName());
+            nameText.setText(player.getFlagCarrier()
+                    ? player.getName() + " \uD83D\uDEA9"
+                    : player.getName());
             nameText.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2));
 
             TextView scoreText = new TextView(this);

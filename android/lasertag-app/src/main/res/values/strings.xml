@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">LasertagPlayer</string>
+    <string name="flag_carrier_banner_text">You have flag — return to base!</string>
 </resources>

@@ -18,6 +18,10 @@ public class SoundManager {
     private final int gameOverSound;
     private final int gameStartSound;
     private final int youScoredSound;
+    private final int flagTakenSound;
+    private final int flagCapturedSound;
+    private final int gotHealthSound;
+
 
     public SoundManager(Context context) {
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
@@ -39,6 +43,9 @@ public class SoundManager {
         gameOverSound = soundPool.load(context, R.raw.game_over, 1);
         gameStartSound = soundPool.load(context, R.raw.game_start, 1);
         youScoredSound = soundPool.load(context, R.raw.you_scored, 1);
+        flagTakenSound = soundPool.load(context, R.raw.flag_taken, 1);
+        flagCapturedSound = soundPool.load(context, R.raw.flag_captured, 1);
+        gotHealthSound = soundPool.load(context, R.raw.health, 1);
     }
 
     public void release() {
@@ -90,11 +97,19 @@ public class SoundManager {
     }
 
     public void playGotHealth() {
-        play(youScoredSound);
+        play(gotHealthSound);
     }
 
     public void playGotAmmo() {
         play(reloadSound);
+    }
+
+    public void playFlagTaken() {
+        play(flagTakenSound);
+    }
+
+    public void playFlagCaptured() {
+        play(flagCapturedSound);
     }
 
 }
