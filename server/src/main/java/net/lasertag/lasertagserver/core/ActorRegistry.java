@@ -86,6 +86,14 @@ public class ActorRegistry {
 		teamScores.merge(teamId, 1, Integer::sum);
 	}
 
+	public int getRedScore() {
+		return teamScores.getOrDefault(Messaging.TEAM_RED, 0);
+	}
+
+	public int getBlueScore() {
+		return teamScores.getOrDefault(Messaging.TEAM_BLUE, 0);
+	}
+
 	public void resetTeamScores() {
 		teamScores.clear();
 		// Initialize scores for all teams that have players

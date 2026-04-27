@@ -7,6 +7,9 @@ import java.util.List;
 
 public class Messaging {
 
+    public static final int TEAM_RED = 0;
+    public static final int TEAM_BLUE = 1;
+
     public static final byte PING = 1;
     public static final byte PLAYER_REPLY_PING = 41;
     public static final byte GUN_SHOT = 2;
@@ -70,9 +73,9 @@ public class Messaging {
     }
 
     private static GameStartMessageIn parseGameStartEventFromServer(ByteBuffer buffer) {
-        var teamPlay = buffer.get();
+        var gameType = buffer.get();
         var gameTimeMinutes = buffer.get();
-        return new GameStartMessageIn(GAME_START, teamPlay != 0, gameTimeMinutes);
+        return new GameStartMessageIn(GAME_START, gameType, gameTimeMinutes);
     }
 
     public static EventMessageIn parseMessageFromDevice(List<Byte> bytes) {
@@ -81,9 +84,11 @@ public class Messaging {
 
     private static StatsMessageIn parseFullStatsMessage(ByteBuffer buffer) {
         var isGameRunning = buffer.get() != 0;
-        var teamPlay = buffer.get() != 0;
+        var gameType = buffer.get();
         var gameTimerSeconds = buffer.getShort();
         var playersCount = buffer.get();
+        var redScore = buffer.get() & 0xFF;
+        var blueScore = buffer.get() & 0xFF;
         var players = new Player[playersCount];
         for (int i = 0; i < playersCount; i++) {
             var id = buffer.get();
@@ -101,7 +106,7 @@ public class Messaging {
             }
             players[i] = new Player(id, health, score, teamId, damage, 0, 0, bulletsMax, assignedRespawnPoint, flagCarrier, new String(nameBytes));
         }
-        return new StatsMessageIn(PLAYER_VALUES_SNAPSHOT, isGameRunning, teamPlay, gameTimerSeconds, players);
+        return new StatsMessageIn(PLAYER_VALUES_SNAPSHOT, isGameRunning, gameType, gameTimerSeconds, redScore, blueScore, players);
     }
 
 }

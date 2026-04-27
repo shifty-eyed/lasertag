@@ -126,6 +126,14 @@ public class Game implements GameEventsListener {
 		getSettings().setGameType(gameType);
 		timeLeftSeconds = getSettings().getTimeLimitMinutes() * 60;
 
+		if (gameType.isTeamBased()) {
+			actorRegistry.streamPlayers().forEach(player -> {
+				if (player.getTeamId() != Messaging.TEAM_RED && player.getTeamId() != Messaging.TEAM_BLUE) {
+					player.setTeamId(player.getId() % 2);
+				}
+			});
+		}
+
 		actorRegistry.resetTeamScores();
 		var respawnPointsIt = actorRegistry.shuffledRespawnPointIds().iterator();
 		actorRegistry.streamPlayers().forEach(player -> {
@@ -200,7 +208,8 @@ public class Game implements GameEventsListener {
 	}
 
 	private void sendPlayerValuesSnapshotToAll(boolean includeNames) {
-		udpServer.sendStatsToAll(includeNames, isGamePlaying, getGameType().ordinal(), timeLeftSeconds);
+		udpServer.sendStatsToAll(includeNames, isGamePlaying, getGameType().ordinal(), timeLeftSeconds,
+			actorRegistry.getRedScore(), actorRegistry.getBlueScore());
 	}
 
 

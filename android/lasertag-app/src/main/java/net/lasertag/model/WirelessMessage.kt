@@ -42,17 +42,23 @@ data class MockEventMessageFromDevice (
 
 data class GameStartMessageIn (
     override val type: Byte,
-    val teamPlay: Boolean,
+    val gameType: Byte,
     val gameTimeMinutes: Int
-): WirelessMessage(type)
+): WirelessMessage(type) {
+    val isTeamPlay: Boolean get() = gameType.toInt() != 0
+}
 
 data class StatsMessageIn (
     override val type: Byte,
     val isGameRunning: Boolean,
-    val isTeamPlay: Boolean,
+    val gameType: Byte,
     val gameTimerSeconds: Short,
+    val redScore: Int,
+    val blueScore: Int,
     var players: Array<Player>
-) : WirelessMessage(type)
+) : WirelessMessage(type) {
+    val isTeamPlay: Boolean get() = gameType.toInt() != 0
+}
 
 data class EventMessageToServer (
     override val type: Byte,

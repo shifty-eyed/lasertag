@@ -43,10 +43,7 @@ import net.lasertag.model.TimeMessage;
 import net.lasertag.model.Messaging;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 
 @SuppressLint({"SetTextI18n","InlinedApi","DefaultLocale"})
@@ -112,6 +109,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private final Player thisPlayer = new Player(DEFAULT_PLAYER_ID);
     private volatile boolean toasterOn = false;
     private int lastLeader = -1;
+    private int lastRedScore = 0;
+    private int lastBlueScore = 0;
 
     private AdminSettingsDialog adminSettingsDialog;
 
@@ -401,16 +400,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         updateFlagCarrierBanner(player);
     }
 
-    private void updatePlayersInfoAndAnnounceLeaderChange(Player[] newPlayers) {
+    private void updatePlayersInfoAndAnnounceLeaderChange(StatsMessageIn message) {
+        var newPlayers = message.getPlayers();
         if (players.length > 0) {
             if (teamPlay) {
-                var teamScores = getTeamScores(players);
-                var maxScoreEntry = Collections.max(teamScores.entrySet(), Map.Entry.comparingByValue());
-                var countOfLeaders = (int) teamScores.values().stream().filter(s -> s.equals(maxScoreEntry.getValue())).count();
-                var newLeaderTeam = countOfLeaders == 1 ? maxScoreEntry.getKey() : -1;
+                int red = message.getRedScore();
+                int blue = message.getBlueScore();
+                int newLeaderTeam = red > blue ? Messaging.TEAM_RED
+                        : blue > red ? Messaging.TEAM_BLUE
+                        : -1;
                 if (lastLeader != newLeaderTeam) {
-                    var message = (newLeaderTeam == -1 ? "Teams are tie!" : teamNames[newLeaderTeam] + " team leads!");
-                    new Handler().postDelayed(() -> speak(message), toasterOn ? 2000 : 100);
+                    var msg = (newLeaderTeam == -1 ? "Teams are tie!" : teamNames[newLeaderTeam] + " team leads!");
+                    new Handler().postDelayed(() -> speak(msg), toasterOn ? 2000 : 100);
                 }
                 lastLeader = newLeaderTeam;
             } else {
@@ -418,24 +419,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 var countOfLeaders = (int) Arrays.stream(newPlayers).filter(p -> p.getScore() == maxScore).count();
                 var newLeaderId = countOfLeaders == 1 ? newPlayers[0].getId() : -1;
                 if (lastLeader != newLeaderId) {
-                    var message = (newLeaderId == -1 ? "You are tie!" :
+                    var msg = (newLeaderId == -1 ? "You are tie!" :
                             (newLeaderId == config.getPlayerId()
                                     ? "You are"
                                     : Objects.requireNonNull(getPlayerById(newLeaderId)).getName() + " is") + " the new leader!");
-                    new Handler().postDelayed(() -> speak(message), toasterOn ? 2000 : 100);
+                    new Handler().postDelayed(() -> speak(msg), toasterOn ? 2000 : 100);
                 }
                 lastLeader = newLeaderId;
             }
         }
         players = newPlayers;
-    }
-
-    private Map<Integer, Integer> getTeamScores(Player[] players) {
-        Map<Integer, Integer> teamScores = new HashMap<>();
-        for (Player player : players) {
-            teamScores.put(player.getTeamId(), teamScores.getOrDefault(player.getTeamId(), 0) + player.getScore());
-        }
-        return teamScores;
+        lastRedScore = message.getRedScore();
+        lastBlueScore = message.getBlueScore();
     }
 
     private void updatePlayersTable(StatsMessageIn message) {
@@ -477,18 +472,21 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             playersTable.addView(row);
         }
         if (teamPlay) {
-            for (Map.Entry<Integer, Integer> e : getTeamScores(message.getPlayers()).entrySet()) {
-                TextView teamScore = new TextView(this);
-                teamScore.setTextColor(ResourcesCompat.getColor(getResources(), R.color.white, null));
-                teamScore.setPadding(16, 8, 8, 8);
-                teamScore.setTextSize(30);
-                teamScore.setText(String.valueOf(e.getValue()));
-                teamScore.setBackgroundColor(ResourcesCompat.getColor(getResources(), config.getTeamColor(e.getKey(), true), null));
-                teamScore.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
-                teamScoresBar.addView(teamScore);
-            }
+            addTeamScoreBadge(Messaging.TEAM_RED, message.getRedScore());
+            addTeamScoreBadge(Messaging.TEAM_BLUE, message.getBlueScore());
         }
-        updatePlayersInfoAndAnnounceLeaderChange(message.getPlayers());
+        updatePlayersInfoAndAnnounceLeaderChange(message);
+    }
+
+    private void addTeamScoreBadge(int teamId, int score) {
+        TextView teamScore = new TextView(this);
+        teamScore.setTextColor(ResourcesCompat.getColor(getResources(), R.color.white, null));
+        teamScore.setPadding(16, 8, 8, 8);
+        teamScore.setTextSize(30);
+        teamScore.setText(String.valueOf(score));
+        teamScore.setBackgroundColor(ResourcesCompat.getColor(getResources(), config.getTeamColor(teamId, true), null));
+        teamScore.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+        teamScoresBar.addView(teamScore);
     }
 
     private void refreshBulletsBar(int bulletsLeft) {

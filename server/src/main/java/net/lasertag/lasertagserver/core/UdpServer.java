@@ -170,12 +170,12 @@ public class UdpServer {
 		sendBytesToClient(actor.getClientIp(), bytes);
 	}
 
-	public void sendStatsToAll(boolean includeNames, boolean isGameRunning, int gameTypeOrdinal, int timeSeconds) {
+	public void sendStatsToAll(boolean includeNames, boolean isGameRunning, int gameTypeOrdinal, int timeSeconds, int redScore, int blueScore) {
 		var players = actorRegistry.getPlayersSortedByScore();
 		var onlinePlayers = players.stream().filter(Player::isOnline).toList();
-		log.info("Stats to players: {}, withNames={}, isGameRunning={}, gameType={}, timeSeconds={}",
-			Arrays.toString(onlinePlayers.stream().map(p -> p.getId()).toArray()), includeNames, isGameRunning, gameTypeOrdinal, timeSeconds);
-		var bytes = Messaging.playerStatsToBytes(includeNames, players, isGameRunning, gameTypeOrdinal, timeSeconds);
+		log.info("Stats to players: {}, withNames={}, isGameRunning={}, gameType={}, timeSeconds={}, redScore={}, blueScore={}",
+			Arrays.toString(onlinePlayers.stream().map(p -> p.getId()).toArray()), includeNames, isGameRunning, gameTypeOrdinal, timeSeconds, redScore, blueScore);
+		var bytes = Messaging.playerStatsToBytes(includeNames, players, isGameRunning, gameTypeOrdinal, timeSeconds, redScore, blueScore);
 		onlinePlayers.forEach(player -> sendBytesToClient(player.getClientIp(), bytes));
 	}
 

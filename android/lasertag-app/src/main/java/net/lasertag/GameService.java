@@ -269,7 +269,7 @@ public class GameService extends Service {
                 thisPlayer.setHealth(0);
                 soundManager.playGameStart();
                 var gameStartMessage = (GameStartMessageIn) message;
-                teamPlay = gameStartMessage.getTeamPlay();
+                teamPlay = gameStartMessage.isTeamPlay();
                 timerCounters[TIMER_GAME].set(gameStartMessage.getGameTimeMinutes() * 60);
             }
             case Messaging.YOU_SCORED -> {
