@@ -282,6 +282,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             flagCarrierBanner.setBackgroundColor(ResourcesCompat.getColor(getResources(),
                     config.getTeamColor(player.getTeamId(), true), null));
             flagCarrierBanner.setVisibility(View.VISIBLE);
+            teamScoresBar.setVisibility(View.GONE);
             startFlagBlinkAnimation();
             if (!wasFlagCarrier) {
                 speak("You have the flag, return to base");
@@ -289,6 +290,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         } else {
             stopFlagBlinkAnimation();
             flagCarrierBanner.setVisibility(View.GONE);
+            teamScoresBar.setVisibility(View.VISIBLE);
         }
         wasFlagCarrier = shouldShow;
     }
