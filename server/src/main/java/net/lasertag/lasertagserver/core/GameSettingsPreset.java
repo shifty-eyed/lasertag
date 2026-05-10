@@ -6,7 +6,9 @@ import lombok.Data;
 import net.lasertag.lasertagserver.model.Actor;
 import net.lasertag.lasertagserver.model.Messaging;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -57,6 +59,17 @@ public class GameSettingsPreset {
 	private DispenserSettings healthDispenserSettings = new DispenserSettings(60, 40);
 	private DispenserSettings ammoDispenserSettings = new DispenserSettings(60, 40);
 
+	private List<RespawnPointColor> respawnPoints = defaultRespawnPoints();
+
+	private static List<RespawnPointColor> defaultRespawnPoints() {
+		List<RespawnPointColor> list = new ArrayList<>(ActorRegistry.RESPAWN_POINT_COUNT);
+		int half = ActorRegistry.RESPAWN_POINT_COUNT / 2;
+		for (int i = 0; i < ActorRegistry.RESPAWN_POINT_COUNT; i++) {
+			list.add(i < half ? RespawnPointColor.RED : RespawnPointColor.BLUE);
+		}
+		return list;
+	}
+
 	public GameSettingsPreset() {
 		initDefaults();
 	}
@@ -91,6 +104,7 @@ public class GameSettingsPreset {
 				"amount", ammoDispenserSettings.getAmount()
 			)
 		));
+		allSettings.put("respawnPoints", new ArrayList<>(respawnPoints));
 		return allSettings;
 	}
 

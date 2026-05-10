@@ -35,8 +35,11 @@ createApp({
                         timeout: 60,
                         amount: 40
                     }
-                }
+                },
+                respawnPoints: ['RED', 'RED', 'RED', 'BLUE', 'BLUE', 'BLUE']
             },
+
+            respawnPointColorOptions: ['RED', 'BLUE', 'ANY', 'OFF'],
 
             teamNames: {
                 0: 'Red',
@@ -326,6 +329,22 @@ createApp({
             } catch (error) {
                 console.error('Error updating player:', error);
                 alert('Failed to update player');
+            }
+        },
+
+        async updateRespawnPoints() {
+            try {
+                const response = await fetch('/api/settings/respawn-points', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ colors: this.settings.respawnPoints })
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to update respawn points');
+                }
+            } catch (error) {
+                console.error('Error updating respawn points:', error);
+                alert('Failed to update respawn points');
             }
         },
 

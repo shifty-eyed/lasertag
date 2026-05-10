@@ -298,23 +298,47 @@
                     <div class="dispenser-controls">
                         <div class="control-group">
                             <label>Timeout (sec):</label>
-                            <input 
-                                type="number" 
-                                v-model.number="settings.dispensers.ammo.timeout" 
+                            <input
+                                type="number"
+                                v-model.number="settings.dispensers.ammo.timeout"
                                 @blur="updateDispensers('AMMO')"
                                 min="1"
                                 placeholder="60">
                         </div>
                         <div class="control-group">
                             <label>Amount:</label>
-                            <input 
-                                type="number" 
-                                v-model.number="settings.dispensers.ammo.amount" 
+                            <input
+                                type="number"
+                                v-model.number="settings.dispensers.ammo.amount"
                                 @blur="updateDispensers('AMMO')"
                                 min="1"
                                 placeholder="40">
                         </div>
                     </div>
+                </div>
+
+                <!-- Respawn Points (team games only) -->
+                <div class="dispenser-panel" v-if="isTeamBased">
+                    <h3>Respawn Points</h3>
+                    <table class="respawn-points-table">
+                        <thead>
+                            <tr>
+                                <th v-for="(color, idx) in settings.respawnPoints" :key="'h' + idx">{{ idx }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td v-for="(color, idx) in settings.respawnPoints" :key="'c' + idx">
+                                    <select
+                                        v-model="settings.respawnPoints[idx]"
+                                        @change="updateRespawnPoints"
+                                        :disabled="gameState.playing">
+                                        <option v-for="opt in respawnPointColorOptions" :key="opt" :value="opt">{{ opt }}</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>

@@ -17,15 +17,11 @@ public class ActorRegistry {
 	public static final int PLAYER_COUNT = 6; // should be configurable
 	public static final int RESPAWN_POINT_COUNT = PLAYER_COUNT;
 
-	private List<Integer> respawnPointsIds = new ArrayList<>(RESPAWN_POINT_COUNT);
 	private final Map<Integer, Integer> teamScores = new HashMap<>();
 
 	public ActorRegistry() {// this should be in config screen before running the game
 		for (int i = 0; i < PLAYER_COUNT; i++) {
 			actors.add(new Player(i, "Player-%d".formatted(i), 100));
-		}
-		for (int i = 0; i < RESPAWN_POINT_COUNT; i++) {
-			respawnPointsIds.add(i);
 		}
 		for (int i = 0; i < 4; i++) {
 			actors.add(new Dispenser(i, Actor.Type.AMMO));
@@ -125,19 +121,6 @@ public class ActorRegistry {
 			.map(Map.Entry::getKey)
 			.toList();
 		return leadTeams.size() == 1 ? leadTeams.get(0) : -1;
-	}
-
-	public List<Integer> shuffledRespawnPointIds() {
-		Collections.shuffle(respawnPointsIds);
-		var pointsToMakeUp = streamPlayers().count() - respawnPointsIds.size();
-		for (int i = 0; i < pointsToMakeUp; i++) {
-		    respawnPointsIds.add(respawnPointsIds.get(i % respawnPointsIds.size()));
-		}
-		return respawnPointsIds;
-	}
-
-	public int getRandomRespawnPointId() {
-		return respawnPointsIds.get(new Random().nextInt(respawnPointsIds.size()));
 	}
 
 	public Dispenser getFlagByTeamId(int teamId) {

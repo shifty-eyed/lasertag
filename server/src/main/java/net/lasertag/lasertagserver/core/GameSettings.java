@@ -7,15 +7,21 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.lasertag.lasertagserver.model.Actor;
 import net.lasertag.lasertagserver.model.Dispenser;
+import net.lasertag.lasertagserver.model.Messaging;
+import net.lasertag.lasertagserver.model.Player;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Stream;
 
 @Component
@@ -29,6 +35,7 @@ public class GameSettings {
 
     private final ObjectMapper objectMapper;
     private final ActorRegistry actorRegistry;
+    private final Random random = new Random();
 
     @Getter
     private GameSettingsPreset current;
@@ -135,6 +142,79 @@ public class GameSettings {
         } catch (IOException e) {
             log.warn("Failed to load server state: {}", e.getMessage());
         }
+    }
+
+    public void assignInitialRespawnPoints() {
+        boolean teamPlay = current.getGameType().isTeamBased();
+        if (teamPlay) {
+            Map<Integer, Iterator<Integer>> teamQueues = new HashMap<>();
+            for (int teamId : new int[] { Messaging.TEAM_RED, Messaging.TEAM_BLUE }) {
+                long count = actorRegistry.streamPlayers().filter(p -> p.getTeamId() == teamId).count();
+                List<Integer> shuffled = new ArrayList<>(candidatePoints(teamId, true));
+                Collections.shuffle(shuffled);
+                teamQueues.put(teamId, cycleToFit(shuffled, count).iterator());
+            }
+            actorRegistry.streamPlayers().forEach(player -> {
+                Iterator<Integer> queue = teamQueues.get(player.getTeamId());
+                if (queue != null && queue.hasNext()) {
+                    player.setAssignedRespawnPoint(queue.next());
+                } else {
+                    log.warn("No respawn point candidates for player {} (team {})", player.getId(), player.getTeamId());
+                }
+            });
+        } else {
+            List<Integer> pool = new ArrayList<>(candidatePoints(0, false));
+            Collections.shuffle(pool);
+            long count = actorRegistry.streamPlayers().count();
+            Iterator<Integer> it = cycleToFit(pool, count).iterator();
+            actorRegistry.streamPlayers().forEach(player -> {
+                if (it.hasNext()) {
+                    player.setAssignedRespawnPoint(it.next());
+                } else {
+                    log.warn("No respawn point candidates for player {}", player.getId());
+                }
+            });
+        }
+    }
+
+    public void assignRespawnPoint(Player player) {
+        boolean teamPlay = current.getGameType().isTeamBased();
+        List<Integer> pool = candidatePoints(player.getTeamId(), teamPlay);
+        if (pool.isEmpty()) {
+            log.warn("No respawn point candidates for player {} (team {})", player.getId(), player.getTeamId());
+            return;
+        }
+        player.setAssignedRespawnPoint(pool.get(random.nextInt(pool.size())));
+    }
+
+    private List<Integer> candidatePoints(int teamId, boolean teamPlay) {
+        List<RespawnPointColor> colors = current.getRespawnPoints();
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < ActorRegistry.RESPAWN_POINT_COUNT; i++) {
+            RespawnPointColor color = i < colors.size() ? colors.get(i) : RespawnPointColor.ANY;
+            if (color == RespawnPointColor.OFF) {
+                continue;
+            }
+            if (!teamPlay
+                || color == RespawnPointColor.ANY
+                || (color == RespawnPointColor.RED && teamId == Messaging.TEAM_RED)
+                || (color == RespawnPointColor.BLUE && teamId == Messaging.TEAM_BLUE)) {
+                result.add(i);
+            }
+        }
+        return result;
+    }
+
+    private List<Integer> cycleToFit(List<Integer> base, long count) {
+        if (base.isEmpty() || count <= base.size()) {
+            return base;
+        }
+        List<Integer> result = new ArrayList<>(base);
+        long extra = count - base.size();
+        for (int i = 0; i < extra; i++) {
+            result.add(base.get(i % base.size()));
+        }
+        return result;
     }
 
     public void syncToActors() {

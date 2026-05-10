@@ -75,7 +75,7 @@ public class Game implements GameEventsListener {
 			actorRegistry.incrementTeamScore(hitByPlayer.getTeamId());
 		}
 		udpServer.sendEventToClient(MessageType.YOU_SCORED, hitByPlayer, (byte)player.getId());
-		player.setAssignedRespawnPoint(actorRegistry.getRandomRespawnPointId());
+		gameSettings.assignRespawnPoint(player);
 
 		if (getGameType() == GameType.CTF && player.isFlagCarrier()) {
 			player.setFlagCarrier(false);
@@ -135,13 +135,12 @@ public class Game implements GameEventsListener {
 		}
 
 		actorRegistry.resetTeamScores();
-		var respawnPointsIt = actorRegistry.shuffledRespawnPointIds().iterator();
 		actorRegistry.streamPlayers().forEach(player -> {
 			player.setScore(0);
 			player.setHealth(0);
 			player.setFlagCarrier(false);
-			player.setAssignedRespawnPoint(respawnPointsIt.next());
 		});
+		gameSettings.assignInitialRespawnPoints();
 
 		if (gameType == GameType.CTF) {
 			sendAllFlagDevicesState(Messaging.FLAG_ON);

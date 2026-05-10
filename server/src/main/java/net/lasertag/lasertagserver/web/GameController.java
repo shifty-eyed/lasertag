@@ -9,6 +9,7 @@ import net.lasertag.lasertagserver.core.GameEventsListener;
 import net.lasertag.lasertagserver.core.GameSettingsPreset;
 import net.lasertag.lasertagserver.core.GameSettings;
 import net.lasertag.lasertagserver.core.GameType;
+import net.lasertag.lasertagserver.core.RespawnPointColor;
 import net.lasertag.lasertagserver.core.UdpServer;
 import net.lasertag.lasertagserver.model.Actor;
 import net.lasertag.lasertagserver.model.MessageType;
@@ -131,6 +132,13 @@ public class GameController {
 		return ResponseEntity.ok(Map.of("status", "Mock device event sent"));
 	}
 
+	@PutMapping("/settings/respawn-points")
+	public ResponseEntity<Map<String, String>> updateRespawnPoints(@RequestBody UpdateRespawnPointsRequest request) {
+		gameSettings.getCurrent().setRespawnPoints(request.getColors());
+		sseEventService.sendSettingsUpdate(gameSettings.getAllSettingsWithMetadata());
+		return ResponseEntity.ok(Map.of("status", "Respawn points updated"));
+	}
+
 	@PutMapping("/dispensers/{type}")
 	public ResponseEntity<Map<String, String>> updateDispensers(
 		@PathVariable String type, 
@@ -185,6 +193,12 @@ public class GameController {
 	public static class UpdateDispenserRequest {
 		private Integer timeout;
 		private Integer amount;
+	}
+
+	@Getter
+	@Setter
+	public static class UpdateRespawnPointsRequest {
+		private List<RespawnPointColor> colors;
 	}
 
 	public record GameSnapshotResponse(
