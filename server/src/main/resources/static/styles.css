@@ -567,6 +567,56 @@ body {
     gap: 1rem;
 }
 
+.respawn-points-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.respawn-points-table th {
+    font-size: 0.85rem;
+    color: #a7b5d4;
+    font-weight: 500;
+    padding: 0.25rem 0.4rem;
+    text-align: center;
+}
+
+.respawn-points-table td {
+    padding: 0.25rem 0.4rem;
+    text-align: center;
+}
+
+.respawn-points-table select {
+    width: 100%;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #2a2f3d;
+    background-color: #1a1d28;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.respawn-points-table select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.respawn-points-table select.color-RED {
+    background-color: #DC143C;
+}
+
+.respawn-points-table select.color-BLUE {
+    background-color: #1E90FF;
+}
+
+.respawn-points-table select.color-ANY {
+    background-color: #800080;
+}
+
+.respawn-points-table select.color-OFF {
+    background-color: #000000;
+}
+
 
 /* Responsive Utilities */
 .mobile-only {
@@ -620,7 +670,7 @@ body {
     }
 
     .dispensers-container {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     }
 
     .mobile-only {

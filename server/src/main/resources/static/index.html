@@ -332,6 +332,7 @@
                                     <select
                                         v-model="settings.respawnPoints[idx]"
                                         @change="updateRespawnPoints"
+                                        :class="'color-' + settings.respawnPoints[idx]"
                                         :disabled="gameState.playing">
                                         <option v-for="opt in respawnPointColorOptions" :key="opt" :value="opt">{{ opt }}</option>
                                     </select>
