@@ -238,7 +238,7 @@ public class Game implements GameEventsListener {
 	}
 
 	private void refreshConsoleUI(boolean isPlaying) {
-		sseEventService.refreshUI(isPlaying);
+		sseEventService.refreshUI(isPlaying, actorRegistry.getDispensersForUi(isPlaying, getGameType()));
 	}
 
 	private void updateConsoleGameTime(int timeLeft) {

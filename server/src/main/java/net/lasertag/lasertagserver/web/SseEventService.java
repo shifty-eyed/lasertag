@@ -32,10 +32,10 @@ public class SseEventService {
 		SseLogAppender.setSseEventService(this);
 	}
 
-	public void refreshUI(boolean isPlaying) {
+	public void refreshUI(boolean isPlaying, Object dispensers) {
 		sendGameIsPlaying(isPlaying);
 		sendPlayersUpdate(actorRegistry.getPlayers());
-		sendDispensersUpdate(actorRegistry.getOnlineDispensers());
+		sendDispensersUpdate(dispensers);
 		sendSettingsUpdate(gameSettings.getAllSettingsWithMetadata());
 	}
 

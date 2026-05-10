@@ -9,6 +9,8 @@ import net.lasertag.lasertagserver.model.Actor;
 import net.lasertag.lasertagserver.model.Dispenser;
 import net.lasertag.lasertagserver.model.Messaging;
 import net.lasertag.lasertagserver.model.Player;
+import net.lasertag.lasertagserver.model.RespawnPointColor;
+
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

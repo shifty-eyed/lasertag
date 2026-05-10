@@ -9,11 +9,12 @@ import net.lasertag.lasertagserver.core.GameEventsListener;
 import net.lasertag.lasertagserver.core.GameSettingsPreset;
 import net.lasertag.lasertagserver.core.GameSettings;
 import net.lasertag.lasertagserver.core.GameType;
-import net.lasertag.lasertagserver.core.RespawnPointColor;
 import net.lasertag.lasertagserver.core.UdpServer;
 import net.lasertag.lasertagserver.model.Actor;
 import net.lasertag.lasertagserver.model.MessageType;
 import net.lasertag.lasertagserver.model.Player;
+import net.lasertag.lasertagserver.model.RespawnPointColor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -51,7 +52,9 @@ public class GameController {
 		
 		try {
 			sseEventService.sendPlayersUpdate(actorRegistry.getPlayers());
-			sseEventService.sendDispensersUpdate(actorRegistry.getOnlineDispensers());
+			sseEventService.sendDispensersUpdate(
+				actorRegistry.getDispensersForUi(game.isGamePlaying(), gameSettings.getCurrent().getGameType())
+			);
 			sseEventService.sendSettingsUpdate(gameSettings.getAllSettingsWithMetadata());
 		} catch (Exception e) {}
 		
@@ -69,7 +72,7 @@ public class GameController {
 		return new GameSnapshotResponse(
 			gameState,
 			actorRegistry.getPlayers(),
-			actorRegistry.getOnlineDispensers(),
+			actorRegistry.getDispensersForUi(game.isGamePlaying(), gameSettings.getCurrent().getGameType()),
 			gameSettings.getAllSettingsWithMetadata()
 		);
 	}
@@ -171,7 +174,9 @@ public class GameController {
 		gameSettings.loadPreset(name);
 		sseEventService.sendSettingsUpdate(gameSettings.getAllSettingsWithMetadata());
 		sseEventService.sendPlayersUpdate(actorRegistry.getPlayers());
-		sseEventService.sendDispensersUpdate(actorRegistry.getOnlineDispensers());
+		sseEventService.sendDispensersUpdate(
+			actorRegistry.getDispensersForUi(game.isGamePlaying(), gameSettings.getCurrent().getGameType())
+		);
 		return ResponseEntity.ok(Map.of("status", "Preset loaded"));
 	}
 
@@ -204,7 +209,7 @@ public class GameController {
 	public record GameSnapshotResponse(
 		GameStateResponse gameState,
 		List<Player> players,
-		Map<String, List<Integer>> dispensers,
+		Map<String, Object> dispensers,
 		Map<String, Object> settings
 	) {}
 

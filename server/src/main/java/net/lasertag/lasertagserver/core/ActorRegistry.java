@@ -146,4 +146,31 @@ public class ActorRegistry {
 		return dispensers;
 	}
 
+	public List<FlagUiState> getFlagStatesForUi(boolean isGamePlaying, GameType gameType) {
+		return streamByType(Actor.Type.FLAG)
+			.map(flag -> {
+				int teamId = flag.getId();
+				boolean isFlagOn = isFlagOnForUi(teamId, isGamePlaying, gameType);
+				return new FlagUiState(teamId, flag.isOnline(), isFlagOn ? "on" : "off");
+			})
+			.toList();
+	}
+
+	public Map<String, Object> getDispensersForUi(boolean isGamePlaying, GameType gameType) {
+		Map<String, Object> dispensers = new HashMap<>(getOnlineDispensers());
+		dispensers.put("flags", getFlagStatesForUi(isGamePlaying, gameType));
+		return dispensers;
+	}
+
+	private boolean isFlagOnForUi(int flagTeamId, boolean isGamePlaying, GameType gameType) {
+		if (!isGamePlaying || gameType != GameType.CTF) {
+			return false;
+		}
+		boolean carriedByEnemy = streamPlayers()
+			.anyMatch(player -> player.isFlagCarrier() && player.getTeamId() != flagTeamId);
+		return !carriedByEnemy;
+	}
+
+	public record FlagUiState(int teamId, boolean online, String state) {}
+
 }

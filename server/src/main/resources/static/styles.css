@@ -567,6 +567,46 @@ body {
     gap: 1rem;
 }
 
+.flags-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.flag-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem 0.9rem;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.flag-row-red {
+    border-color: rgba(220, 20, 60, 0.55);
+}
+
+.flag-row-blue {
+    border-color: rgba(30, 144, 255, 0.55);
+}
+
+.flag-row-name {
+    letter-spacing: 0.02em;
+}
+
+.flag-row-caption {
+    font-size: 0.9rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 0.2rem 0.45rem;
+    border-radius: 4px;
+}
+
+.flag-row-offline {
+    opacity: 0.45;
+    filter: grayscale(0.3);
+}
+
 .respawn-points-table {
     width: 100%;
     border-collapse: collapse;

@@ -1,4 +1,4 @@
-package net.lasertag.lasertagserver.core;
+package net.lasertag.lasertagserver.model;
 
 public enum RespawnPointColor {
 	RED,

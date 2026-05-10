@@ -16,7 +16,8 @@ createApp({
 
             dispensers: {
                 health: [],
-                ammo: []
+                ammo: [],
+                flags: []
             },
 
             settings: {
@@ -70,6 +71,22 @@ createApp({
         },
         onlineAmmoDispensers() {
             return this.dispensers.ammo || [];
+        },
+        ctfFlags() {
+            const incomingFlags = Array.isArray(this.dispensers.flags) ? this.dispensers.flags : [];
+            const flagsByTeam = new Map(incomingFlags.map(flag => [Number(flag.teamId), flag]));
+
+            return [0, 1].map(teamId => {
+                const flag = flagsByTeam.get(teamId) || {};
+                const online = Boolean(flag.online);
+                const state = online && flag.state === 'on' ? 'on' : 'off';
+                return {
+                    teamId,
+                    online,
+                    state,
+                    caption: online ? state : 'offline'
+                };
+            });
         },
         sortedTeamScores() {
             const teamTotals = this.players.reduce((acc, player) => {

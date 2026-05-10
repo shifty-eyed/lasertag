@@ -317,6 +317,24 @@
                     </div>
                 </div>
 
+                <div class="dispenser-panel" v-if="settings.general.gameType === 'CTF'">
+                    <h3>Flags</h3>
+                    <div class="flags-list">
+                        <div
+                            v-for="flag in ctfFlags"
+                            :key="flag.teamId"
+                            class="flag-row"
+                            :class="[
+                                flag.teamId === 0 ? 'flag-row-red' : 'flag-row-blue',
+                                !flag.online ? 'flag-row-offline' : ''
+                            ]"
+                            :style="{ backgroundColor: getTeamColor(flag.teamId), color: getTeamTextColor(flag.teamId) }">
+                            <span class="flag-row-name">{{ getTeamName(flag.teamId) }} Flag</span>
+                            <span class="flag-row-caption">{{ flag.caption }}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Respawn Points (team games only) -->
                 <div class="dispenser-panel" v-if="isTeamBased">
                     <h3>Respawn Points</h3>

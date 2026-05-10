@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import net.lasertag.lasertagserver.model.Actor;
 import net.lasertag.lasertagserver.model.Messaging;
+import net.lasertag.lasertagserver.model.RespawnPointColor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
