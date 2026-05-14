@@ -21,13 +21,11 @@ TaskHandle_t udpReceiveTaskHandle = NULL;
 volatile uint32_t timeSinceLastPingReceived = 999;
 volatile uint32_t timeSinceLastPingSent = 0;
 
+volatile uint8_t deviceActive = 0;
+
 #ifdef IS_DISPENSER
 volatile uint32_t dispenseTimeoutSec = 30;
 volatile uint32_t timeSinceLastDispense = dispenseTimeoutSec;
-#endif
-
-#ifdef IS_FLAG
-volatile uint8_t flagState = FLAG_STATE_OFF;
 #endif
 
 #define PING_EVERY_SECONDS 3
@@ -74,10 +72,10 @@ void setup() {
 }
 
 bool shouldBeacon() {
-#ifdef IS_FLAG
-  return isOnline() && flagState == FLAG_STATE_ON;
+#ifdef IS_DISPENSER
+  return isOnline() && deviceActive && timeSinceLastDispense > dispenseTimeoutSec;
 #else
-  return isOnline() && timeSinceLastDispense > dispenseTimeoutSec;
+  return isOnline() && deviceActive;
 #endif
 }
 
@@ -165,16 +163,11 @@ void taskUdpReceiver(void* pvParameters) {
         Serial.printf("Received DISPENSER_SET_TIMEOUT: %d\n", dispenseTimeoutSec);
       }
 #endif
-#ifdef IS_FLAG
-      else if (type == MSG_TYPE_IN_FLAG_STATE) {
-        if (len < 2) {
-          Serial.println("Invalid MSG_TYPE_IN_FLAG_STATE message length");
-          continue;
-        }
-        flagState = incomingPacket[1];
-        Serial.printf("Received FLAG_STATE: %d\n", flagState);
+      else if (type == MSG_TYPE_IN_DEVICE_STATE) {
+        if (len < 2) continue;
+        deviceActive = incomingPacket[1];
+        Serial.printf("Received DEVICE_STATE: %d\n", deviceActive);
       }
-#endif
     }
     vTaskDelay(20 / portTICK_PERIOD_MS);
   }

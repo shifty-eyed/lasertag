@@ -145,8 +145,8 @@ public class Game implements GameEventsListener {
 		if (gameType == GameType.CTF) {
 			sendAllFlagDevicesState(Messaging.FLAG_ON);
 		}
-
 		setIsGamePlaying(true);
+		udpServer.sendSettingsToAllDispensers();
 		sendPlayerValuesSnapshotToAll(true);
 		actorRegistry.streamPlayers().forEach(player -> {
 			if (player.isOnline()) {
@@ -161,6 +161,7 @@ public class Game implements GameEventsListener {
 		log.info("Ending game");
 		setIsGamePlaying(false);
 		sendAllFlagDevicesState(Messaging.FLAG_OFF);
+		udpServer.sendSettingsToAllDispensers();
 
 		Player leadPlayer = actorRegistry.getLeadPlayer();
 		int leadTeam = actorRegistry.getLeadTeam();

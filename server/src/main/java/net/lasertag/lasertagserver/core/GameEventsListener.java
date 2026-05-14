@@ -19,4 +19,6 @@ public interface GameEventsListener {
 
 	byte getFlagDeviceStateOnConnect(Actor flagActor);
 
+	boolean isGamePlaying();
+
 }

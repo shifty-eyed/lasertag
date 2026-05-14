@@ -180,11 +180,13 @@ public class UdpServer {
 	}
 
 	public void sendSettingsToAllDispensers() {
+		byte state = gameEventsListener.isGamePlaying() ? Messaging.FLAG_ON : Messaging.FLAG_OFF;
 		Stream.concat(actorRegistry.streamByType(Actor.Type.AMMO), actorRegistry.streamByType(Actor.Type.HEALTH))
-		.filter(actor -> actor.isOnline())
+		.filter(Actor::isOnline)
 		.forEach(actor -> {
 			int timeout = gameSettings.getCurrent().getDispenserSettings(actor.getType()).getTimeout();
-			sendEventToClient(MessageType.DISPENSER_SET_TIMEOUT, actor, (byte)(timeout / 10));// to pack as 1 byte
+			sendEventToClient(MessageType.DISPENSER_SET_TIMEOUT, actor, (byte)(timeout / 10));
+			sendEventToClient(MessageType.FLAG_DEVICE_STATE, actor, state);
 		});
 	}
 
