@@ -409,7 +409,8 @@ createApp({
         },
 
         isRespawnPending(player) {
-            return player.online &&
+            return this.gameState.playing &&
+                player.online &&
                 player.health === 0 &&
                 player.assignedRespawnPoint >= 0;
         },
