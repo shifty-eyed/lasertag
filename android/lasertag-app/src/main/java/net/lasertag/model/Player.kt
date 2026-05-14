@@ -16,7 +16,7 @@ data class Player(
     var flagCarrier: Boolean,
     var name: String
 ) : Serializable, Comparable<Player> {
-    constructor(id: Int) : this(id, 100, 0, 0, 0, 0, 0, 0, 0, false,"NoName")
+    constructor(id: Int) : this(id, Config.INITIAL_HEALTH, 0, 0, 0, 0, 0, 0, 0, false,"NoName")
 
     fun isAlive(): Boolean {
         return health > 0
@@ -52,7 +52,7 @@ data class Player(
 
     fun respawn() {
         assignedRespawnPoint = -1
-        health = 50//Config.MAX_HEALTH
+        health = Config.INITIAL_HEALTH
         bulletsInMagazine = Config.MAGAZINE_SIZE
         bulletsTotal = bulletsMax
     }

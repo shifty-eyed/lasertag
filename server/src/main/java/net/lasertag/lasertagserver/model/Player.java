@@ -2,6 +2,7 @@ package net.lasertag.lasertagserver.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.lasertag.lasertagserver.core.Game;
 
 @Getter
 public class Player extends Actor {
@@ -23,13 +24,10 @@ public class Player extends Actor {
 	@Setter
 	private boolean flagCarrier;
 
-	private int maxHealth;
-
-	public Player(int id,  String name, int maxHealth) {
+	public Player(int id, String name) {
 		super(id, Type.PLAYER);
-		this.maxHealth = maxHealth;
 		this.name = name;
-		this.health = maxHealth;
+		this.health = Game.INITIAL_HEALTH;
 		this.score = 0;
 		this.teamId = Messaging.TEAM_YELLOW;
 		this.damage = 10;

@@ -21,7 +21,7 @@ public class ActorRegistry {
 
 	public ActorRegistry() {// this should be in config screen before running the game
 		for (int i = 0; i < PLAYER_COUNT; i++) {
-			actors.add(new Player(i, "Player-%d".formatted(i), 100));
+			actors.add(new Player(i, "Player-%d".formatted(i)));
 		}
 		for (int i = 0; i < 4; i++) {
 			actors.add(new Dispenser(i, Actor.Type.AMMO));
