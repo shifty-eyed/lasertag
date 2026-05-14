@@ -141,6 +141,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         setContentView(R.layout.activity_main);
 
         playerName = findViewById(R.id.player_name);
+        playerName.setOnClickListener(v ->
+            Toast.makeText(this, "Player# " + thisPlayer.getId(), Toast.LENGTH_LONG).show()
+        );
         playerHealth = findViewById(R.id.player_health);
         playerScore = findViewById(R.id.player_score);
         playerTotalAmmo = findViewById(R.id.player_total_ammo);
