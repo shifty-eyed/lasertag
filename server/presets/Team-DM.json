@@ -28,7 +28,7 @@
       "teamId" : 1
     },
     "4" : {
-      "name" : "Player-5",
+      "name" : "Katya",
       "bulletsMax" : 40,
       "damage" : 10,
       "teamId" : 0
@@ -47,5 +47,6 @@
   "ammoDispenserSettings" : {
     "timeout" : 60,
     "amount" : 40
-  }
+  },
+  "respawnPoints" : [ "RED", "RED", "RED", "BLUE", "BLUE", "BLUE" ]
 }

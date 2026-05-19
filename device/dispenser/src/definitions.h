@@ -2,9 +2,9 @@
 #define DEVICE_ID 3
 
 //#define HEALTH
-//#define AMMO
+#define AMMO
 //#define FLAG_RED
-#define FLAG_BLUE
+//#define FLAG_BLUE
 
 #ifdef HEALTH
   #define IR_ADDRESS (IR_ADDRESS_HEALTH)
