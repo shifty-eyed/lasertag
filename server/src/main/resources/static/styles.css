@@ -260,6 +260,17 @@ body {
     box-shadow: var(--shadow-hover);
 }
 
+.btn-secondary {
+    background-color: #2f3640;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #3e4450;
+    box-shadow: var(--shadow-hover);
+}
+
 .btn-danger {
     background-color: var(--danger-color);
     color: white;

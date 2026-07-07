@@ -349,6 +349,18 @@ createApp({
             }
         },
 
+        swapTeams() {
+            this.players.forEach(player => {
+                if (player.teamId === 0) {
+                    player.teamId = 1;
+                    this.updatePlayer(player);
+                } else if (player.teamId === 1) {
+                    player.teamId = 0;
+                    this.updatePlayer(player);
+                }
+            });
+        },
+
         async updateRespawnPoints() {
             try {
                 const response = await fetch('/api/settings/respawn-points', {

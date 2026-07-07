@@ -96,6 +96,13 @@
             </div>
 
             <div class="button-group">
+                <button
+                    v-if="isTeamBased"
+                    @click="swapTeams"
+                    :disabled="gameState.playing"
+                    class="btn btn-secondary">
+                    Swap Teams
+                </button>
                 <button 
                     @click="startGame" 
                     :disabled="gameState.playing"
