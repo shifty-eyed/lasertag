@@ -39,7 +39,7 @@ public record MessageType(byte id, String name, Direction directionFlag) {
 
 	public static final MessageType DISPENSER_USED = new MessageType((byte) 51, "DISPENSER_USED", SERVER_TO_CLIENT);
 	public static final MessageType DISPENSER_SET_TIMEOUT = new MessageType((byte) 53, "DISPENSER_SET_TIMEOUT", SERVER_TO_CLIENT);
-	public static final MessageType FLAG_DEVICE_STATE = new MessageType((byte) 54, "FLAG_DEVICE_STATE", SERVER_TO_CLIENT);
+	public static final MessageType DEVICE_STATE = new MessageType((byte) 54, "DEVICE_STATE", SERVER_TO_CLIENT);
 
 	public static final MessageType GAME_TIMER = new MessageType((byte) 101, "GAME_TIMER", SERVER_TO_CLIENT);
 	public static final MessageType LOST_CONNECTION = new MessageType((byte) 102, "LOST_CONNECTION", SERVER_TO_CLIENT);

@@ -82,7 +82,7 @@ public class Game implements GameEventsListener {
 			player.setFlagCarrier(false);
 			var enemyTeamId = player.getTeamId() == Messaging.TEAM_RED ? Messaging.TEAM_BLUE : Messaging.TEAM_RED;
 			var enemyFlag = actorRegistry.getFlagByTeamId(enemyTeamId);
-			udpServer.sendEventToClient(MessageType.FLAG_DEVICE_STATE, enemyFlag, Messaging.FLAG_ON);
+			udpServer.sendEventToClient(MessageType.DEVICE_STATE, enemyFlag, Messaging.FLAG_ON);
 			broadcastFlagEvent(MessageType.FLAG_LOST, player);
 		}
 
@@ -96,13 +96,13 @@ public class Game implements GameEventsListener {
 		var flagActor = actorRegistry.getFlagByTeamId(flagTeamId);
 		if (flagTeamId != player.getTeamId()) {
 			player.setFlagCarrier(true);
-			udpServer.sendEventToClient(MessageType.FLAG_DEVICE_STATE, flagActor, Messaging.FLAG_OFF);
+			udpServer.sendEventToClient(MessageType.DEVICE_STATE, flagActor, Messaging.FLAG_OFF);
 			broadcastFlagEvent(MessageType.FLAG_TAKEN, player);
 		} else if (player.isFlagCarrier()) {
 			player.setFlagCarrier(false);
 			var enemyTeamId = player.getTeamId() == Messaging.TEAM_RED ? Messaging.TEAM_BLUE : Messaging.TEAM_RED;
 			var enemyFlag = actorRegistry.getFlagByTeamId(enemyTeamId);
-			udpServer.sendEventToClient(MessageType.FLAG_DEVICE_STATE, enemyFlag, Messaging.FLAG_ON);
+			udpServer.sendEventToClient(MessageType.DEVICE_STATE, enemyFlag, Messaging.FLAG_ON);
 			actorRegistry.incrementTeamScore(player.getTeamId());
 			broadcastFlagEvent(MessageType.FLAG_CAPTURED, player);
 
@@ -236,7 +236,7 @@ public class Game implements GameEventsListener {
 	private void sendAllFlagDevicesState(byte state) {
 		actorRegistry.streamByType(Actor.Type.FLAG)
 			.filter(Actor::isOnline)
-			.forEach(flag -> udpServer.sendEventToClient(MessageType.FLAG_DEVICE_STATE, flag, state));
+			.forEach(flag -> udpServer.sendEventToClient(MessageType.DEVICE_STATE, flag, state));
 	}
 
 	private void refreshConsoleUI(boolean isPlaying) {

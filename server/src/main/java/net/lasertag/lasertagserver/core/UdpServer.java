@@ -128,7 +128,7 @@ public class UdpServer {
 					byte flagState = gameEventsListener != null
 						? gameEventsListener.getFlagDeviceStateOnConnect(actor)
 						: Messaging.FLAG_OFF;
-					sendEventToClient(MessageType.FLAG_DEVICE_STATE, actor, flagState);
+					sendEventToClient(MessageType.DEVICE_STATE, actor, flagState);
 				}
 			}
 			lastPingTime.put(actor, System.currentTimeMillis());
@@ -164,6 +164,13 @@ public class UdpServer {
 		});
 	}
 
+	@Scheduled(fixedRate = 10000)
+	private void syncDispenserSettings() {
+		if (gameEventsListener != null) {
+			sendSettingsToAllDispensers();
+		}
+	}
+
 	public void sendEventToClient(MessageType type, Actor actor, byte... values) {
 		log.info("Event to {}: type={}, data: {}", actor.toString(), type.name(), Arrays.toString(values));
 		var bytes = Messaging.eventToBytes(type.id(), values);
@@ -186,7 +193,7 @@ public class UdpServer {
 		.forEach(actor -> {
 			int timeout = gameSettings.getCurrent().getDispenserSettings(actor.getType()).getTimeout();
 			sendEventToClient(MessageType.DISPENSER_SET_TIMEOUT, actor, (byte)(timeout / 10));
-			sendEventToClient(MessageType.FLAG_DEVICE_STATE, actor, state);
+			sendEventToClient(MessageType.DEVICE_STATE, actor, state);
 		});
 	}
 
