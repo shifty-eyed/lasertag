@@ -54,7 +54,7 @@ data class Player(
         assignedRespawnPoint = -1
         health = Config.INITIAL_HEALTH
         bulletsInMagazine = Config.MAGAZINE_SIZE
-        bulletsTotal = bulletsMax
+        bulletsTotal = bulletsMax / 2
     }
 
     fun reload(): Boolean {

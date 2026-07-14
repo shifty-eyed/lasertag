@@ -40,7 +40,7 @@ public class Config {
 
     public static final int MAX_HEALTH = 100;
     public static final int INITIAL_HEALTH = 50;
-    public static final int MAGAZINE_SIZE = 10;
+    public static final int MAGAZINE_SIZE = 7;
 
     private final byte playerId;
     private InetAddress broadcastAddress;
