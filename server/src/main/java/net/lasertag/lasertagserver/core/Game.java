@@ -95,9 +95,13 @@ public class Game implements GameEventsListener {
 	private void onPlayerGotFlag(Player player, int flagTeamId) {
 		var flagActor = actorRegistry.getFlagByTeamId(flagTeamId);
 		if (flagTeamId != player.getTeamId()) {
-			player.setFlagCarrier(true);
-			udpServer.sendEventToClient(MessageType.DEVICE_STATE, flagActor, Messaging.FLAG_OFF);
-			broadcastFlagEvent(MessageType.FLAG_TAKEN, player);
+			boolean someoneElseCarries = actorRegistry.streamPlayers()
+				.anyMatch(p -> p.isFlagCarrier() && p.getId() != player.getId());
+			if (!player.isFlagCarrier() && !someoneElseCarries) {
+				player.setFlagCarrier(true);
+				udpServer.sendEventToClient(MessageType.DEVICE_STATE, flagActor, Messaging.FLAG_OFF);
+				broadcastFlagEvent(MessageType.FLAG_TAKEN, player);
+			}
 		} else if (player.isFlagCarrier()) {
 			player.setFlagCarrier(false);
 			var enemyTeamId = player.getTeamId() == Messaging.TEAM_RED ? Messaging.TEAM_BLUE : Messaging.TEAM_RED;
