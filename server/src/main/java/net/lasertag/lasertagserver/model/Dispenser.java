@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 public class Dispenser extends Actor {
 
-	public static final int DEFAULT_DISPENSE_TIMEOUT = 60;
+	public static final int DEFAULT_DISPENSE_TIMEOUT = 30;
 	public static final int DEFAULT_AMOUNT = 40;
 
 	@Setter

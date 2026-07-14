@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 public class Game implements GameEventsListener {
 	private static final Logger log = LoggerFactory.getLogger(Game.class);
 
-	public static final int MAX_HEALTH = 150;
-	public static final int INITIAL_HEALTH = 100;
+	public static final int MAX_HEALTH = 100;
+	public static final int INITIAL_HEALTH = 50;
 
 	private final ActorRegistry actorRegistry;
 	private final UdpServer udpServer;
