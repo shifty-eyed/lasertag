@@ -41,11 +41,11 @@
     }
   },
   "healthDispenserSettings" : {
-    "timeout" : 60,
-    "amount" : 40
+    "timeout" : 30,
+    "amount" : 60
   },
   "ammoDispenserSettings" : {
-    "timeout" : 60,
+    "timeout" : 30,
     "amount" : 40
   },
   "respawnPoints" : [ "RED", "RED", "RED", "BLUE", "BLUE", "BLUE" ]

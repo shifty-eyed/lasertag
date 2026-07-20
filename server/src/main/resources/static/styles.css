@@ -245,6 +245,12 @@ body {
     min-width: 120px;
 }
 
+.btn-compact {
+    min-width: 44px;
+    width: 44px;
+    padding: 0.75rem 0;
+}
+
 .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;

@@ -361,6 +361,20 @@ createApp({
             });
         },
 
+        adjustAllBulletsMax(delta) {
+            this.players.forEach(player => {
+                player.bulletsMax = Math.min(100, Math.max(1, player.bulletsMax + delta));
+                this.updatePlayer(player);
+            });
+        },
+
+        adjustAllDamage(delta) {
+            this.players.forEach(player => {
+                player.damage = Math.min(100, Math.max(1, player.damage + delta));
+                this.updatePlayer(player);
+            });
+        },
+
         async updateRespawnPoints() {
             try {
                 const response = await fetch('/api/settings/respawn-points', {

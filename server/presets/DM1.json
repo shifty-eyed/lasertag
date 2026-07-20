@@ -1,7 +1,7 @@
 {
   "fragLimit" : 10,
   "gameType" : "DM",
-  "timeLimitMinutes" : 15,
+  "timeLimitMinutes" : 5,
   "playerSettings" : {
     "0" : {
       "name" : "Tima",
@@ -41,11 +41,11 @@
     }
   },
   "healthDispenserSettings" : {
-    "timeout" : 60,
-    "amount" : 40
+    "timeout" : 30,
+    "amount" : 80
   },
   "ammoDispenserSettings" : {
-    "timeout" : 60,
+    "timeout" : 30,
     "amount" : 40
   },
   "respawnPoints" : [ "RED", "RED", "RED", "BLUE", "BLUE", "BLUE" ]
