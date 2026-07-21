@@ -29,7 +29,7 @@ volatile uint32_t timeSinceLastDispense = dispenseTimeoutSec;
 #endif
 
 #define PING_EVERY_SECONDS 3
-#define IR_SIGNAL_EVERY_MILLIS 2000
+#define IR_SIGNAL_EVERY_MILLIS 300
 
 bool isOnline() {
   return timeSinceLastPingReceived < 10;
