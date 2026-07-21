@@ -20,10 +20,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Component
@@ -186,7 +188,26 @@ public class GameSettings {
             log.warn("No respawn point candidates for player {} (team {})", player.getId(), player.getTeamId());
             return;
         }
-        player.setAssignedRespawnPoint(pool.get(random.nextInt(pool.size())));
+
+        // Points already claimed by other dead players waiting to respawn must not be stolen.
+        Set<Integer> reserved = new HashSet<>();
+        actorRegistry.streamPlayers()
+            .filter(p -> p.getId() != player.getId())
+            .filter(p -> p.getHealth() == 0 && p.getAssignedRespawnPoint() >= 0)
+            .forEach(p -> reserved.add(p.getAssignedRespawnPoint()));
+
+        List<Integer> unused = new ArrayList<>();
+        for (int point : pool) {
+            if (!reserved.contains(point)) {
+                unused.add(point);
+            }
+        }
+
+        // Prefer free points; if all are reserved, share from the full pool without
+        // changing anyone else's assignment.
+        List<Integer> choices = unused.isEmpty() ? new ArrayList<>(pool) : unused;
+        Collections.shuffle(choices, random);
+        player.setAssignedRespawnPoint(choices.get(0));
     }
 
     private List<Integer> candidatePoints(int teamId, boolean teamPlay) {
