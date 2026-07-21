@@ -15,6 +15,8 @@ public interface GameEventsListener {
 
 	void onPlayerJoinedOrLeft();
 
+	void onPlayerOfflineDuringGame(Player player);
+
 	void onPlayerDataUpdated(Player player, boolean isNameUpdated);
 
 	byte getFlagDeviceStateOnConnect(Actor flagActor);

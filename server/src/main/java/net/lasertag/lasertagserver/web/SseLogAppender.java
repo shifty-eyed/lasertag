@@ -22,10 +22,12 @@ public class SseLogAppender extends AppenderBase<ILoggingEvent> {
 			return;
 		}
 
-		// Filter to only capture logs from UdpServer and Game classes
+		// Filter to only capture logs from UdpServer, Game, and GameEvents
 		String loggerName = event.getLoggerName();
-		if (!loggerName.equals("net.lasertag.lasertagserver.core.UdpServer") &&
-			!loggerName.equals("net.lasertag.lasertagserver.core.Game")) {
+		if (
+			//!loggerName.equals("net.lasertag.lasertagserver.core.UdpServer") &&
+			!loggerName.equals("net.lasertag.lasertagserver.core.Game") &&
+			!loggerName.equals("GameEvents")) {
 			return;
 		}
 

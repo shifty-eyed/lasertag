@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Component
 @Getter
@@ -54,6 +55,10 @@ public class Game implements GameEventsListener {
 			if (type == MessageType.YOU_KILLED.id()) {
 				onPlayerKilled(player, hitByPlayer);
 			} else {
+				GameEventLog.info("Hit: {} (team {}) hit by {} (team {}) healthAfter={} damage={} timeLeft={}",
+					formatPlayer(player), teamName(player.getTeamId()),
+					formatPlayer(hitByPlayer), teamName(hitByPlayer.getTeamId()),
+					player.getHealth(), hitByPlayer.getDamage(), timeLeftSeconds);
 				udpServer.sendEventToClient(MessageType.YOU_HIT_SOMEONE, hitByPlayer, (byte)player.getId());
 			}
 		} else if (type == MessageType.GOT_HEALTH.id()) {
@@ -62,6 +67,9 @@ public class Game implements GameEventsListener {
 			useDispenser(player, Actor.Type.AMMO, message.getExtraValue(), MessageType.GIVE_AMMO_TO_PLAYER);
 		} else if (type == MessageType.GOT_FLAG.id()) {
 			onPlayerGotFlag(player, message.getExtraValue());
+		} else if (type == MessageType.RESPAWN.id()) {
+			GameEventLog.info("Respawn: {} pointId={} healthAfter={} timeLeft={}",
+				formatPlayer(player), message.getExtraValue(), player.getHealth(), timeLeftSeconds);
 		}
 
 		if (type != MessageType.GOT_AMMO.id() && type != MessageType.GOT_HEALTH.id()) {
@@ -71,6 +79,7 @@ public class Game implements GameEventsListener {
 	}
 
 	private void onPlayerKilled(Player player, Player hitByPlayer) {
+		boolean wasFlagCarrier = player.isFlagCarrier();
 		hitByPlayer.setScore(hitByPlayer.getScore() + 1);
 		if (getGameType() == GameType.TEAM_DM) {
 			actorRegistry.incrementTeamScore(hitByPlayer.getTeamId());
@@ -78,12 +87,22 @@ public class Game implements GameEventsListener {
 		udpServer.sendEventToClient(MessageType.YOU_SCORED, hitByPlayer, (byte)player.getId());
 		gameSettings.assignRespawnPoint(player);
 
-		if (getGameType() == GameType.CTF && player.isFlagCarrier()) {
+		GameEventLog.info(
+			"Kill: {} (team {}) killed by {} (team {}) scores={}/{} teamScores=R{}/B{} wasFlagCarrier={} assignedRespawnPoint={} timeLeft={}",
+			formatPlayer(player), teamName(player.getTeamId()),
+			formatPlayer(hitByPlayer), teamName(hitByPlayer.getTeamId()),
+			player.getScore(), hitByPlayer.getScore(),
+			actorRegistry.getRedScore(), actorRegistry.getBlueScore(),
+			wasFlagCarrier, player.getAssignedRespawnPoint(), timeLeftSeconds);
+
+		if (getGameType() == GameType.CTF && wasFlagCarrier) {
 			player.setFlagCarrier(false);
 			var enemyTeamId = player.getTeamId() == Messaging.TEAM_RED ? Messaging.TEAM_BLUE : Messaging.TEAM_RED;
 			var enemyFlag = actorRegistry.getFlagByTeamId(enemyTeamId);
 			udpServer.sendEventToClient(MessageType.DEVICE_STATE, enemyFlag, Messaging.FLAG_ON);
 			broadcastFlagEvent(MessageType.FLAG_LOST, player);
+			GameEventLog.info("Flag returned: {} (team {}) dropped flag timeLeft={}",
+				formatPlayer(player), teamName(player.getTeamId()), timeLeftSeconds);
 		}
 
 		var vitalScore = isTeamPlay() ? actorRegistry.getTeamScores().get(hitByPlayer.getTeamId()) : hitByPlayer.getScore();
@@ -101,6 +120,8 @@ public class Game implements GameEventsListener {
 				player.setFlagCarrier(true);
 				udpServer.sendEventToClient(MessageType.DEVICE_STATE, flagActor, Messaging.FLAG_OFF);
 				broadcastFlagEvent(MessageType.FLAG_TAKEN, player);
+				GameEventLog.info("Flag taken: {} (team {}) took enemy flag timeLeft={}",
+					formatPlayer(player), teamName(player.getTeamId()), timeLeftSeconds);
 			}
 		} else if (player.isFlagCarrier()) {
 			player.setFlagCarrier(false);
@@ -109,8 +130,10 @@ public class Game implements GameEventsListener {
 			udpServer.sendEventToClient(MessageType.DEVICE_STATE, enemyFlag, Messaging.FLAG_ON);
 			actorRegistry.incrementTeamScore(player.getTeamId());
 			broadcastFlagEvent(MessageType.FLAG_CAPTURED, player);
-
 			var teamScore = actorRegistry.getTeamScores().get(player.getTeamId());
+			GameEventLog.info("Flag captured: {} (team {}) scored teamScore={} timeLeft={}",
+				formatPlayer(player), teamName(player.getTeamId()), teamScore, timeLeftSeconds);
+
 			if (teamScore >= getSettings().getFragLimit()) {
 				eventConsoleEndGame();
 			}
@@ -121,6 +144,9 @@ public class Game implements GameEventsListener {
 		var dispenser = (Dispenser) actorRegistry.getActorByTypeAndId(dispenserType, dispenserId);
 		udpServer.sendEventToClient(MessageType.DISPENSER_USED, dispenser);
 		udpServer.sendEventToClient(messageToPlayerType, player, (byte)dispenser.getAmount());
+		GameEventLog.info("Dispenser: {} used {} #{} amount={} playerHealth={} timeLeft={}",
+			formatPlayer(player), dispenserType.name(), dispenserId, dispenser.getAmount(),
+			player.getHealth(), timeLeftSeconds);
 	}
 
 	@Override
@@ -158,19 +184,34 @@ public class Game implements GameEventsListener {
 				udpServer.sendEventToClient(MessageType.GAME_START, player, (byte) getGameType().ordinal(), (byte) getSettings().getTimeLimitMinutes());
 			}
 		});
-		
+
+		GameEventLog.open(gameSettings.getCurrentPresetName());
+		logMatchHeader();
 	}
 
 	@Override
 	public void eventConsoleEndGame() {
+		if (!isGamePlaying) {
+			return;
+		}
 		log.info("Ending game");
+		Player leadPlayer = actorRegistry.getLeadPlayer();
+		int leadTeam = actorRegistry.getLeadTeam();
+		int winner = isTeamPlay() ? leadTeam : Optional.ofNullable(leadPlayer).map(Player::getId).orElse(-1);
+		String winnerLabel = isTeamPlay()
+			? teamName(winner)
+			: Optional.ofNullable(leadPlayer).map(this::formatPlayer).orElse("none");
+
+		GameEventLog.info(
+			"Game end: winner={} timeLeft={} scores=[{}] teamScores=R{}/B{}",
+			winnerLabel, Math.max(timeLeftSeconds, 0),
+			formatAllScores(), actorRegistry.getRedScore(), actorRegistry.getBlueScore());
+		GameEventLog.close();
+
 		setIsGamePlaying(false);
 		sendAllFlagDevicesState(Messaging.FLAG_OFF);
 		udpServer.sendSettingsToAllDispensers();
 
-		Player leadPlayer = actorRegistry.getLeadPlayer();
-		int leadTeam = actorRegistry.getLeadTeam();
-		int winner = isTeamPlay() ? leadTeam : Optional.ofNullable(leadPlayer).map(Player::getId).orElse(-1);
 		scheduler.schedule(() -> {
 			for (Player player : actorRegistry.getPlayers()) {
 				udpServer.sendEventToClient(MessageType.GAME_OVER, player, (byte)winner);
@@ -191,6 +232,13 @@ public class Game implements GameEventsListener {
 	@Override
 	public void onPlayerDataUpdated(Player player, boolean isNameUpdated) {
 		sendPlayerValuesSnapshotToAll(isNameUpdated);
+	}
+
+	@Override
+	public void onPlayerOfflineDuringGame(Player player) {
+		if (isGamePlaying) {
+			GameEventLog.info("Player offline: {} timeLeft={}", formatPlayer(player), timeLeftSeconds);
+		}
 	}
 
 	@Scheduled(fixedDelay = 1000, initialDelay = 1000)
@@ -261,6 +309,44 @@ public class Game implements GameEventsListener {
 
 	private GameSettingsPreset getSettings() {
 		return gameSettings.getCurrent();
+	}
+
+	private void logMatchHeader() {
+		GameSettingsPreset settings = getSettings();
+		var health = settings.getHealthDispenserSettings();
+		var ammo = settings.getAmmoDispenserSettings();
+		GameEventLog.info(
+			"Game start: preset={} gameType={} timeLimitMinutes={} fragLimit={} healthDispenser=timeout{}/amount{} ammoDispenser=timeout{}/amount{} respawnPoints={}",
+			gameSettings.getCurrentPresetName(), settings.getGameType(), settings.getTimeLimitMinutes(),
+			settings.getFragLimit(), health.getTimeout(), health.getAmount(),
+			ammo.getTimeout(), ammo.getAmount(), settings.getRespawnPoints());
+
+		actorRegistry.streamPlayers()
+			.filter(Player::isOnline)
+			.forEach(p -> GameEventLog.info(
+				"Player loadout: id={} name={} team={} damage={} bulletsMax={}",
+				p.getId(), p.getName(), teamName(p.getTeamId()), p.getDamage(), p.getBulletsMax()));
+	}
+
+	private String formatPlayer(Player player) {
+		if (player == null) {
+			return "unknown";
+		}
+		return player.getName() + "#" + player.getId();
+	}
+
+	private String teamName(int teamId) {
+		return switch (teamId) {
+			case Messaging.TEAM_RED -> "RED";
+			case Messaging.TEAM_BLUE -> "BLUE";
+			default -> "TEAM" + teamId;
+		};
+	}
+
+	private String formatAllScores() {
+		return actorRegistry.streamPlayers()
+			.map(p -> formatPlayer(p) + "=" + p.getScore())
+			.collect(Collectors.joining(", "));
 	}
 
 }

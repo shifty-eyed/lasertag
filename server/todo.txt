@@ -10,3 +10,9 @@ CTF:
 - add flag returned event
 - when flag captured, own flag should show a few quick blinks/pulses to indicate capture
 
+Logging:
+- refactor GameEventLog usage: move log formatting helpers out of Game
+  (formatPlayer, teamName, formatAllScores, logMatchHeader) into GameEventLog
+  (or a dedicated helper) so Game only emits events, not presentation/enumeration logic.
+  Maybe have another game event listener impl for log, and enrich game event listener with more events
+

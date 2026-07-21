@@ -156,6 +156,7 @@ public class UdpServer {
 					if (gameEventsListener != null) {
 						gameEventsListener.refreshConsoleTable();
 						if (actor.getType() == Actor.Type.PLAYER) {
+							gameEventsListener.onPlayerOfflineDuringGame((Player) actor);
 							gameEventsListener.onPlayerJoinedOrLeft();
 						}
 					}
